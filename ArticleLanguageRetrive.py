@@ -18,6 +18,14 @@ import urllib
 import pickle
 import itertools
 
+
+
+API = "https://en.wikipedia.org/w/api.php?action=query&format=json&prop=links&plnamespace=0&pllimit=500&titles="
+pageTitle = "Portal:Current_events/March_2017"
+
+
+
+
 os.chdir("/Users/Ang/OneDrive/Documents/Pitt_PhD/ResearchProjects/Wiki_Event/data")
 
 f = open("all133articles.txt")
