@@ -60,7 +60,7 @@ def checkMultiLang(lang_link_list: list) -> bool:
 # return True if the creation time falls between a pre-defined range
 # creation time equals to the first revision time
 def checkCreationTime(creation_time: str) -> bool:
-    return = True if creation_time > "2016-01-01T00:00:00Z" else False
+    return True if creation_time > "2016-01-01T00:00:00Z" else False
 
 def apiErrorCheck(headers: dict):
     if "MediaWiki-API-Error" in headers:
