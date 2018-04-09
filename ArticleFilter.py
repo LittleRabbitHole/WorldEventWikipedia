@@ -104,7 +104,7 @@ def collectingArticles():
         gapcontinue, pages = getWikiPages(gapcontinue)
         filtered_pages = []
         for page in pages:
-            if checkPageParams(page["pageid"]):
+            if checkPageParams(str(page["pageid"])):
                 filtered_pages.append(page)
         
         if len(filtered_pages) > 0:
