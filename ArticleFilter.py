@@ -98,6 +98,7 @@ def writeRowsCSV(rows: list):
 def collectingArticles():
     gapcontinue = None
     while gapcontinue != "end":
+        print(gapcontinue)
         gapcontinue, pages = getWikiPages(gapcontinue)
         filtered_pages = []
         for page in pages:
@@ -107,6 +108,6 @@ def collectingArticles():
         if len(filtered_pages) > 0:
             writeRowsCSV(filtered_pages)
     
-# print(checkPageParams(str(323064)))
+collectingArticles()
 
 
