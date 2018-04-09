@@ -1,1 +1,1 @@
-# WorldEventWikipedia
+# World Event in Wikipedia
