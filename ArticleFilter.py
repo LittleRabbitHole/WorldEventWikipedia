@@ -105,6 +105,8 @@ def collectingArticles():
         filtered_pages = []
         for page in pages:
             if checkPageParams(str(page["pageid"])):
+                page.pop('ns', None)
+                page.pop('langlinkscount', None)
                 filtered_pages.append(page)
         
         if len(filtered_pages) > 0:
