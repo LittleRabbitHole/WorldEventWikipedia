@@ -33,9 +33,11 @@ def langlinkscountCheck(count: int) -> bool:
     return True if count >= 2 else False
 
 def getWikiPages(gapcontinue=None):
+    if gapcontinue == "end":
+        return ("end", [])
     requests_url = "https://zh.wikipedia.org/w/api.php?action=query&format=json&generator=allpages&gaplimit=500\
     &gapfilterredir=nonredirects&gapfilterlanglinks=withlanglinks&prop=langlinkscount&formatversion=2"
-    requests_url = requests_url + "&gapcontinue="+gapcontinue if gapcontinue != None else requests
+    requests_url = requests_url + "&gapcontinue="+gapcontinue if gapcontinue != None else requests_url
     r = requests.get(requests_url)
     result = r.json()
     gapcontinue = result["continue"]["gapcontinue"] if "continue" in result else "end"
