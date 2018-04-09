@@ -49,7 +49,7 @@ def getWikiPages(gapcontinue=None):
 
 # return True if both en and es existed in the langlinks list
 def checkMultiLang(lang_link_list: list) -> bool:
-    lang_list = ['en', 'es', 'zh']
+    lang_list = ['en', 'es']
     counter = 0
     for lang in lang_link_list:
         if lang['lang'] in lang_list:
@@ -60,10 +60,10 @@ def checkMultiLang(lang_link_list: list) -> bool:
 # return True if the creation time falls between a pre-defined range
 # creation time equals to the first revision time
 def checkCreationTime(creation_time: str) -> bool:
-    return True if creation_time > "2016-01-01T00:00:00Z" else False
+    return = True if creation_time > "2016-01-01T00:00:00Z" else False
 
 def apiErrorCheck(headers: dict):
-    if "MediaWiki-API-Error" in headers.keys:
+    if "MediaWiki-API-Error" in headers:
         return (True, headers['MediaWiki-API-Error'])
     else:
         return (False, "no errors")
@@ -71,7 +71,7 @@ def apiErrorCheck(headers: dict):
 # check if a page fits our defined params => 
 #   * having zh, en, es language page 
 #   * is created in a pre-defined timespan
-def checkPageParams(id: str) -> bool:
+def checkPageParams(id) -> bool:
     request_url = "https://zh.wikipedia.org/w/api.php?action=query&format=json&prop=revisions|langlinks&rvlimit=1\
     &rvprop=timestamp&rvdir=newer&lllimit=50&pageids=" + id
 
@@ -80,9 +80,10 @@ def checkPageParams(id: str) -> bool:
     if apiErrorCheck(r_params.headers)[0]:
         print(id, apiErrorCheck(r_params.headers)[1])
         return False
-    
+
+    r_params = r_params.json()
     multi_lang_list = r_params['query']['pages'][id]['langlinks']
-    time_stamp = r_params['query']['pages'][id]['revisions']['timestamp']
+    time_stamp = r_params['query']['pages'][id]['revisions'][0]['timestamp']
     check_result = checkCreationTime(time_stamp) and checkMultiLang(multi_lang_list)
 
     return check_result
@@ -94,14 +95,18 @@ def writeRowsCSV(rows: list):
         for row in rows:
             writer.writerow(row)
 
-gapcontinue = None
-while gapcontinue != "end":
-    gapcontinue, pages = getWikiPages(gapcontinue)
-    filtered_pages = []
-    for page in pages:
-        if checkPageParams(str(page["pageid"])):
-            filtered_pages.append(page)
+def collectingArticles():
+    gapcontinue = None
+    while gapcontinue != "end":
+        gapcontinue, pages = getWikiPages(gapcontinue)
+        filtered_pages = []
+        for page in pages:
+            if checkPageParams(page["pageid"]):
+                filtered_pages.append(page)
+        
+        if len(filtered_pages) > 0:
+            writeRowsCSV(filtered_pages)
     
-    if len(filtered_pages) > 0:
-        writeRowsCSV(filtered_pages)
-    
+# print(checkPageParams(str(323064)))
+
+
