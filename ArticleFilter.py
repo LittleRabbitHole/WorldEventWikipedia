@@ -124,7 +124,7 @@ def writeRowsCSV(rows: list):
             writer.writerow(row)
 
 def collectingArticles():
-    gapcontinue = "Baby Sitter"
+    gapcontinue = "直-8"
     while gapcontinue != "end":
         print(gapcontinue)
         gapcontinue, pages = getWikiPages(gapcontinue)
