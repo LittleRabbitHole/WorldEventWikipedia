@@ -66,9 +66,9 @@ def checkCreationTime(creation_time: str) -> bool:
     return True if creation_time > "2016-01-01T00:00:00Z" else False
 
 def multiLangCreationTime(title: str, language: str) -> bool:
-    request_url = "https://en.wikipedia.org/w/api.php?action=query&format=json&prop=revisions&rvlimit=1\
+    request_url = "https://en.wikipedia.org/w/api.php?action=query&format=json&prop=revisions&rvlimit=1&formatversion=2\
     &rvprop=timestamp&rvdir=newer&titles=" + title if language == "en" else "https://es.wikipedia.org/w/api.php?action=query&format=json&\
-    prop=revisions&rvlimit=1&rvprop=timestamp&rvdir=newer&titles=" + title
+    prop=revisions&rvlimit=1&rvprop=timestamp&rvdir=newer&formatversion=2&titles=" + title
 
     r_creation_time = requests.get(request_url)
 
@@ -77,7 +77,7 @@ def multiLangCreationTime(title: str, language: str) -> bool:
         return False
     
     r_json = r_creation_time.json()
-    return checkCreationTime(r_json['query']['pages'][id]['revisions'][0]['timestamp'])
+    return checkCreationTime(r_json['query']['pages'][0]['revisions'][0]['timestamp'])
 
 def apiErrorCheck(headers: dict):
     if "MediaWiki-API-Error" in headers:
