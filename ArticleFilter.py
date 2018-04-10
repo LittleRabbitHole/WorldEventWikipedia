@@ -76,7 +76,8 @@ def multiLangCreationTime(title: str, language: str) -> bool:
         print(title, apiErrorCheck(r_creation_time.headers)[1])
         return False
     
-    return checkCreationTime(r_creation_time['query']['pages'][id]['revisions'][0]['timestamp'])
+    r_json = r_creation_time.json()
+    return checkCreationTime(r_json['query']['pages'][id]['revisions'][0]['timestamp'])
 
 def apiErrorCheck(headers: dict):
     if "MediaWiki-API-Error" in headers:
@@ -106,8 +107,8 @@ def checkPageParams(id) -> bool:
 
 def writeRowsCSV(rows: list):
     with open('multi_lang_list.csv', 'a') as csv_file:
-        writer = csv.DictWriter(csv_file, fieldnames = ["pageid", "title"])
-        writer.writeheader()
+        writer = csv.writer(csv_file, fieldnames = ["pageid", "title"])
+        # writer.writeheader()
         for row in rows:
             writer.writerow(row)
 
@@ -122,6 +123,7 @@ def collectingArticles():
                 page.pop('ns', None)
                 page.pop('langlinkscount', None)
                 filtered_pages.append(page)
+                print(page['title'])
         
         if len(filtered_pages) > 0:
             writeRowsCSV(filtered_pages)
