@@ -55,7 +55,8 @@ def checkMultiLang(lang_link_list: list) -> bool:
     counter = 0
     for lang in lang_link_list:
         if lang['lang'] in lang_list:
-            counter += 1
+            if multiLangCreationTime(lang['*'], lang['lang']):
+                counter += 1
     
     return True if counter >= 2 else False
 
@@ -63,6 +64,19 @@ def checkMultiLang(lang_link_list: list) -> bool:
 # creation time equals to the first revision time
 def checkCreationTime(creation_time: str) -> bool:
     return True if creation_time > "2016-01-01T00:00:00Z" else False
+
+def multiLangCreationTime(title: str, language: str) -> bool:
+    request_url = "https://en.wikipedia.org/w/api.php?action=query&format=json&prop=revisions&rvlimit=1\
+    &rvprop=timestamp&rvdir=newer&titles=" + title if language == "en" else "https://es.wikipedia.org/w/api.php?action=query&format=json&\
+    prop=revisions&rvlimit=1&rvprop=timestamp&rvdir=newer&titles=" + title
+
+    r_creation_time = requests.get(request_url)
+
+    if apiErrorCheck(r_creation_time.headers)[0]:
+        print(title, apiErrorCheck(r_creation_time.headers)[1])
+        return False
+    
+    return checkCreationTime(r_creation_time['query']['pages'][id]['revisions'][0]['timestamp'])
 
 def apiErrorCheck(headers: dict):
     if "MediaWiki-API-Error" in headers:
