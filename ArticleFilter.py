@@ -53,12 +53,16 @@ def getWikiPages(gapcontinue=None):
 def checkMultiLang(lang_link_list: list) -> bool:
     lang_list = ['en', 'es']
     counter = 0
+    langs = {}
     for lang in lang_link_list:
         if lang['lang'] in lang_list:
-            if multiLangCreationTime(lang['*'], lang['lang']):
-                counter += 1
+            counter += 1
+            langs[lang['lang']] = lang['*']
     
-    return True if counter >= 2 else False
+    if counter == 2:
+        return multiLangCreationTime(langs['en'], 'en') and multiLangCreationTime(langs['es'], 'es')
+    else:
+        return False
 
 # return True if the creation time falls between a pre-defined range
 # creation time equals to the first revision time
@@ -66,14 +70,15 @@ def checkCreationTime(creation_time: str) -> bool:
     return True if creation_time > "2016-01-01T00:00:00Z" else False
 
 def multiLangCreationTime(title: str, language: str) -> bool:
-    request_url = "https://en.wikipedia.org/w/api.php?action=query&format=json&prop=revisions&rvlimit=1&formatversion=2\
-    &rvprop=timestamp&rvdir=newer&titles=" + title if language == "en" else "https://es.wikipedia.org/w/api.php?action=query&format=json&\
-    prop=revisions&rvlimit=1&rvprop=timestamp&rvdir=newer&formatversion=2&titles=" + title
-
+    request_url = "https://en.wikipedia.org/w/api.php?action=query&format=json&prop=revisions&rvlimit=1&formatversion=2&rvprop=timestamp&rvdir=newer&titles="\
+    + title if language == "en" else \
+    "https://es.wikipedia.org/w/api.php?action=query&format=json&prop=revisions&rvlimit=1&rvprop=timestamp&rvdir=newer&formatversion=2&titles=" + title
+    
+    # print(request_url)
     r_creation_time = requests.get(request_url)
-
+    
     if apiErrorCheck(r_creation_time.headers)[0]:
-        print(title, apiErrorCheck(r_creation_time.headers)[1])
+        print("ERROR", title, apiErrorCheck(r_creation_time.headers)[1])
         return False
     
     r_json = r_creation_time.json()
@@ -95,7 +100,7 @@ def checkPageParams(id) -> bool:
     r_params = requests.get(request_url)
 
     if apiErrorCheck(r_params.headers)[0]:
-        print(id, apiErrorCheck(r_params.headers)[1])
+        print("ERROR", id, apiErrorCheck(r_params.headers)[1])
         return False
 
     r_params = r_params.json()
@@ -107,7 +112,7 @@ def checkPageParams(id) -> bool:
 
 def writeRowsCSV(rows: list):
     with open('multi_lang_list.csv', 'a') as csv_file:
-        writer = csv.writer(csv_file, fieldnames = ["pageid", "title"])
+        writer = csv.DictWriter(csv_file, fieldnames = ["pageid", "title"])
         # writer.writeheader()
         for row in rows:
             writer.writerow(row)
