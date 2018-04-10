@@ -7,6 +7,7 @@ Created on Tue Mar  6 12:48:17 2018
 import requests
 import re
 import csv
+import sys 
 
 # request address for getting all pages from wikipedia
 # Host: zh.wikipedia.org
@@ -82,6 +83,11 @@ def multiLangCreationTime(title: str, language: str) -> bool:
         return False
     
     r_json = r_creation_time.json()
+    if 'revisions' not in r_json['query']['pages'][0]:
+        print(" ERROR ")
+        print(r_json)
+        print(" ")
+        return False
     return checkCreationTime(r_json['query']['pages'][0]['revisions'][0]['timestamp'])
 
 def apiErrorCheck(headers: dict):
@@ -118,7 +124,7 @@ def writeRowsCSV(rows: list):
             writer.writerow(row)
 
 def collectingArticles():
-    gapcontinue = None
+    gapcontinue = "Baby Sitter"
     while gapcontinue != "end":
         print(gapcontinue)
         gapcontinue, pages = getWikiPages(gapcontinue)
@@ -128,7 +134,7 @@ def collectingArticles():
                 page.pop('ns', None)
                 page.pop('langlinkscount', None)
                 filtered_pages.append(page)
-                print(page['title'])
+                print(" ", page['title'])
         
         if len(filtered_pages) > 0:
             writeRowsCSV(filtered_pages)
