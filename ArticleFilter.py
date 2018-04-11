@@ -40,7 +40,7 @@ def getWikiPages(gapcontinue=None):
     &gapfilterredir=nonredirects&gapfilterlanglinks=withlanglinks&prop=langlinkscount&formatversion=2"
     requests_url = requests_url + "&gapcontinue="+gapcontinue if gapcontinue != None else requests_url
     r = requests.get(requests_url)
-    result = r.json()
+    result = returnJsonCheck(r)
     gapcontinue = result["continue"]["gapcontinue"] if "continue" in result else "end"
     pages = result["query"]["pages"]
     filtered_list = []
@@ -82,7 +82,7 @@ def multiLangCreationTime(title: str, language: str) -> bool:
         print("ERROR", title, apiErrorCheck(r_creation_time.headers)[1])
         return False
     
-    r_json = r_creation_time.json()
+    r_json = returnJsonCheck(r_creation_time)
     if 'revisions' not in r_json['query']['pages'][0]:
         print(" ERROR ")
         print(r_json)
@@ -95,6 +95,14 @@ def apiErrorCheck(headers: dict):
         return (True, headers['MediaWiki-API-Error'])
     else:
         return (False, "no errors")
+
+def returnJsonCheck(response) -> dict:
+    try:
+        return response.json()
+    except:
+        print("ERROR")
+        print(response)
+        sys.exit("json error")
     
 # check if a page fits our defined params => 
 #   * having zh, en, es language page 
@@ -109,7 +117,7 @@ def checkPageParams(id) -> bool:
         print("ERROR", id, apiErrorCheck(r_params.headers)[1])
         return False
 
-    r_params = r_params.json()
+    r_params = returnJsonCheck(r_params)
     multi_lang_list = r_params['query']['pages'][id]['langlinks']
     time_stamp = r_params['query']['pages'][id]['revisions'][0]['timestamp']
     check_result = checkCreationTime(time_stamp) and checkMultiLang(multi_lang_list)
@@ -123,8 +131,7 @@ def writeRowsCSV(rows: list):
         for row in rows:
             writer.writerow(row)
 
-def collectingArticles():
-    gapcontinue = "直-8"
+def collectingArticles(gapcontinue = None):
     while gapcontinue != "end":
         print(gapcontinue)
         gapcontinue, pages = getWikiPages(gapcontinue)
@@ -139,6 +146,6 @@ def collectingArticles():
         if len(filtered_pages) > 0:
             writeRowsCSV(filtered_pages)
     
-collectingArticles()
+collectingArticles(None)
 
 
