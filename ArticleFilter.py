@@ -50,6 +50,22 @@ def getWikiPages(gapcontinue=None):
             filtered_list.append(page)
     return (gapcontinue, filtered_list)
 
+def getWikiITNPages(gcontinue = None):
+    if gcontinue == "end":
+        return ("end", [])
+    requests_url = "https://en.wikipedia.org/w/api.php?action=query&format=json&formatversion=2&prop=revisions&generator=embeddedin&geititle=Template:ITN%20candidate&rvprop=timestamp%7Cuser%7Ccomment%7Ccontent&geilimit=10"
+    requests_url = requests_url + "&geicontinue="+gcontinue if gcontinue != None else requests_url
+    r = requests.get(requests_url)
+    result = returnJsonCheck(r)
+    gcontinue = result["continue"]["geicontinue"] if "continue" in result else "end"
+    pages = result["query"]["pages"]
+    filtered_list = []
+    for page in pages:
+        if "Wikipedia:In the news/Candidates/" in page['title']:
+            print(page['title'])
+            filtered_list.append(page)
+    return (gcontinue, filtered_list)    
+
 # return True if both en and es existed in the langlinks list
 def checkMultiLang(lang_link_list: list) -> bool:
     lang_list = ['en', 'es']
@@ -124,9 +140,64 @@ def checkPageParams(id) -> bool:
 
     return check_result
 
-def writeRowsCSV(rows: list):
-    with open('multi_lang_list.csv', 'a') as csv_file:
-        writer = csv.DictWriter(csv_file, fieldnames = ["pageid", "title"])
+def decipherWikiITNPage(content: str) -> list:
+    itn_lists = []
+    content_by_days = re.split(r'(==\W?\w+? \d{1,2}\W?==)', content)
+    if len(content_by_days) <= 1:
+        print("fail to split based on day")
+        # print(content_by_days)
+        return itn_lists
+    
+    itn_time = ""
+    for bolb_day in content_by_days:    
+        if re.match(r'(==\W?\w+? \d{1,2}\W?==)', bolb_day):
+            itn_time = bolb_day.strip().split("==")[1].strip()
+            continue
+        itn_candidates = re.split(r'(\n====.+====\n)', bolb_day)[1:]
+        itn_title = ""
+        for itn_candidate in itn_candidates:
+            if re.match(r'(\n====.+====\n)', itn_candidate):
+                print(itn_candidate)
+                itn_title = itn_candidate.strip().split("====")[1]
+                continue
+            itn_msg = ""
+            for itn_split in re.split(r'(\{\{ITN candidate[\s\S]+?\}\}\n)', itn_candidate):
+                # print(itn_split)
+                if re.match(r'(\{\{ITN candidate[\s\S]+?\}\}\n)', itn_split):
+                    itn_msg = itn_split
+                    break
+            itn = decipherITNTemplate(itn_time, itn_title, itn_msg)
+            itn_lists.append(itn)
+    return itn_lists  
+
+def decipherITNTemplate(time: str, title: str, content: str) -> dict:
+    result = {"time":time, "header":title, "article": "", "article2": "", "image": "", "blurb": "", "recent deaths": "", "ongoing": "", "altblurb": "", 
+    "altblurb2": "", "altblurb3": "", "altblurb4": "", "sources": "", "updated": "", "updated2": "", "nominator": "", 
+    "updater": "", "updater2": "", "updater3": "", "ITNR": "", "nom cmt": "", "sign": ""}
+    
+    itn_params = content.strip().split("| ")[1:]
+    for param in itn_params:
+        print(param)
+        temp = re.split(r'\W=\W', param)
+        key = temp[0].strip()
+        value = ""
+        if len(temp) >= 2:
+            value = temp[1].strip() if not re.match(r'<--.+-->', temp[1].strip()) else ""
+            value = temp[1].strip()
+        
+        if key == "sign":
+            value = value.split("(UTC)")[0] + "(UTC)"
+
+        value = value.replace("\n", " ")
+        if key in result.keys():
+            result[key] = value
+
+    return result
+
+
+def writeRowsCSV(rows: list, fieldnames = ["pageid", "title"]):
+    with open('itns.csv', 'a') as csv_file:
+        writer = csv.DictWriter(csv_file, fieldnames = fieldnames)
         # writer.writeheader()
         for row in rows:
             writer.writerow(row)
@@ -146,6 +217,23 @@ def collectingArticles(gapcontinue = None):
         if len(filtered_pages) > 0:
             writeRowsCSV(filtered_pages)
     
-collectingArticles(None)
 
+def collectingITNEntries(gcontinue = None):
+    field_names = ["year", "time", "header", "article", "article2", "image", "blurb", "recent deaths", "ongoing", "altblurb", 
+        "altblurb2", "altblurb3", "altblurb4", "sources", "updated", "updated2", "nominator", 
+        "updater", "updater2", "updater3", "ITNR", "nom cmt", "sign"]
+    while gcontinue != "end":
+        print(gcontinue)
+        gcontinue, itn_pages = getWikiITNPages(gcontinue)
+        itns = []
+        for itn_page in itn_pages:
+            # print(itn_page)
+            itns = decipherWikiITNPage(itn_page['revisions'][0]['content'])
+            year = itn_page['title'].strip()[-4:]
+            itns = [(lambda itn: dict(itn.items() | {'year':year}.items()))(itn) for itn in itns] # adding year data into the result
+
+            if len(itns) > 0:
+                writeRowsCSV(itns, field_names)
+
+collectingITNEntries(None)
 
