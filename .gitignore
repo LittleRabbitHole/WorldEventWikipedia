@@ -26,5 +26,6 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
-# Deverlop environment
+# Develop environment
 .vscode/
+.csv
