@@ -67,16 +67,16 @@ def getWikiITNPages(gcontinue = None):
     return (gcontinue, filtered_list)    
 
 # return True if both en and es existed in the langlinks list
-def checkMultiLang(lang_link_list: list) -> bool:
-    lang_list = ['en', 'es']
+def checkMultiLang(lang_link_list: list, lang_list = ['en', 'es'], titles = False) -> bool:
+    # lang_list = ['en', 'es']
     counter = 0
     langs = {}
     for lang in lang_link_list:
         if lang['lang'] in lang_list:
             counter += 1
-            langs[lang['lang']] = lang['*']
+            langs[lang['lang']] = lang['title']
     
-    if counter == 2:
+    if counter == 2 and not titles:
         return multiLangCreationTime(langs['en'], 'en') and multiLangCreationTime(langs['es'], 'es')
     else:
         return False
@@ -175,10 +175,10 @@ def decipherITNTemplate(time: str, title: str, content: str) -> dict:
     "altblurb2": "", "altblurb3": "", "altblurb4": "", "sources": "", "updated": "", "updated2": "", "nominator": "", 
     "updater": "", "updater2": "", "updater3": "", "ITNR": "", "nom cmt": "", "sign": ""}
     
-    itn_params = content.strip().split("| ")[1:]
+    itn_params = content.strip().split("|")[1:]
     for param in itn_params:
         print(param)
-        temp = re.split(r'\W=\W', param)
+        temp = re.split(r'\W?=\W?', param)
         key = temp[0].strip()
         value = ""
         if len(temp) >= 2:
@@ -195,8 +195,8 @@ def decipherITNTemplate(time: str, title: str, content: str) -> dict:
     return result
 
 
-def writeRowsCSV(rows: list, fieldnames = ["pageid", "title"]):
-    with open('itns.csv', 'a') as csv_file:
+def writeRowsCSV(rows: list, fieldnames = ["pageid", "title"], filenames = 'itns.csv'):
+    with open(filenames, 'a') as csv_file:
         writer = csv.DictWriter(csv_file, fieldnames = fieldnames)
         # writer.writeheader()
         for row in rows:
@@ -235,5 +235,5 @@ def collectingITNEntries(gcontinue = None):
             if len(itns) > 0:
                 writeRowsCSV(itns, field_names)
 
-collectingITNEntries(None)
+# collectingITNEntries(None)
 

@@ -28,4 +28,5 @@ Temporary Items
 
 # Develop environment
 .vscode/
-.csv
+*.csv
+__pycache__/
