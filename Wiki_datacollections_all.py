@@ -20,10 +20,6 @@ import pickle
 import itertools
 
 #this is to retrive all revisions for one API
-
-#example API: "https://en.wikipedia.org/w/api.php?action=query&format=json&rvdir=newer&rvlimit=500&prop=revisions&rvprop=ids|timestamp|user|userid|size\comment&titles=" + pageTitle
-# check https://www.mediawiki.org/wiki/API:Revisions for other useful variables
-
 # input API and pageTitle
 #need to adjust based on the jason data returned and decode
 def GetRevisions(API, pageTitle):
