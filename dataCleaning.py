@@ -37,7 +37,7 @@ def loadDataSet(file_name: str):
         reader = csv.DictReader(csv_file)
         print(type(reader))
         for row in reader:
-            data_set.append({'year':row['year'], 'time':row['time'], 'header':row['header'], 'article':row['article'], 'article2':row['article2']})
+            data_set.append({'year':row['year'], 'time':row['time'], 'header':row['header'], 'article':row['article'], 'article2':row['article2'], 'blurb':row['blurb'], 'altblurb':row['altblurb'], 'altblurb2':row['altblurb2'], 'altblurb3':row['altblurb3'], 'altblurb4':row['altblurb4']})
     # return pandas.read_csv(file_name, usecols=['year','time','header','article','article2'], dtype={'year':str,'time':str,'header':str,'article':str,'article2':str})
     return data_set
 
@@ -98,13 +98,13 @@ def dataCleanMultiLang():
         article2 = articleTitleCleanup(row['article2'])
         if article != "":
             zh, es = checkLangLinks(article)
-            cleaned.append({"year": row['year'], "time": row['time'], "article": article, "zh": zh['zh'], "es": es['es'], "zh_title": zh['zh_title'], "es_title": es['es_title']})
+            cleaned.append({"year": row['year'], "time": row['time'], "article": article, "zh": zh['zh'], "es": es['es'], "zh_title": zh['zh_title'], "es_title": es['es_title'], 'blurb':row['blurb'], 'altblurb':row['altblurb'], 'altblurb2':row['altblurb2'], 'altblurb3':row['altblurb3'], 'altblurb4':row['altblurb4']})
         
         if article2 != '':
             zh, es = checkLangLinks(article2)
-            cleaned.append({"year": row['year'], "time": row['time'], "article": article2, "zh": zh['zh'], "es": es['es'], "zh_title": zh['zh_title'], "es_title": es['es_title']})
+            cleaned.append({"year": row['year'], "time": row['time'], "article": article2, "zh": zh['zh'], "es": es['es'], "zh_title": zh['zh_title'], "es_title": es['es_title'], 'blurb':row['blurb'], 'altblurb':row['altblurb'], 'altblurb2':row['altblurb2'], 'altblurb3':row['altblurb3'], 'altblurb4':row['altblurb4']})
 
-        utl.writeRowsCSV(cleaned, fieldnames=["year", "time", "article", "zh", "es", "zh_title", "es_title"], filenames='posted_itn.csv')
+        utl.writeRowsCSV(cleaned, fieldnames=["year", "time", "article", "zh", "es", "zh_title", "es_title", "blurb", 'altblurb', 'altblurb2', 'altblurb3', 'altblurb4'], filenames='posted_itn_blurbs.csv')
 
     print(posted_counter)    
 
