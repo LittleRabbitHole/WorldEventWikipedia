@@ -126,13 +126,16 @@ def articles_general_states():
     data = pd.read_table("/Users/ANG/OneDrive/Documents/Pitt_PhD/ResearchProjects/WikiWorldEvent/data/posted_itn.csv", 
                          sep=',', error_bad_lines = False)
     #all_articles = list(data['article']) + list(data['zh_title']) + list(data['es_title'])
-    #all_articles = list(set(all_articles)) #5565 totle articles
+    #all_articles = list(set(all_articles)) #5564 totle articles
     
 #    f = open("/Users/ANG/OneDrive/Documents/Pitt_PhD/ResearchProjects/WikiWorldEvent/data/posted_itn.csv")
 #    lines = f.read().split("\n\n")
 #    f.close()
     
     articles_gstates = {}
+    articles_gstates['en'] = {}
+    articles_gstates['zh'] = {}
+    articles_gstates['es'] = {}
     error_articles = {}
     
     safechar = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~\t\n\r\x0b\x0c'
@@ -148,7 +151,7 @@ def articles_general_states():
         try:
             en_soup = request_soup(en_site)
             en_stats = general_stats(en_soup)
-            articles_gstates[title] = ['en', en_stats]
+            articles_gstates['en'][title] = en_stats
         except Exception as e: 
             error_articles[title] = ['en', str(e)]
         
@@ -160,7 +163,7 @@ def articles_general_states():
             try:
                 zh_soup = request_soup(zh_site)
                 zh_stats = general_stats(zh_soup)
-                articles_gstates[zh_title] = ['zh', zh_stats]
+                articles_gstates['zh'][zh_title] = zh_stats
             except Exception as e:
                 error_articles[title] = ['zh', str(e)]
         #esp    
@@ -171,7 +174,7 @@ def articles_general_states():
             try:
                 es_soup = request_soup(es_site)
                 es_stats = general_stats(es_soup)
-                articles_gstates[es_title] = ['es', es_stats]
+                articles_gstates['es'][es_title] = es_stats
             except Exception as e:
                 error_articles[title] = ['es', str(e)]
     
