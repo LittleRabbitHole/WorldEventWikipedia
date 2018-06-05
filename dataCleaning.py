@@ -4,6 +4,7 @@ import csv
 import requests
 import math
 import ArticleFilter as utl
+import infoboxGrabbing as infobox
 
 def getMultiLang(lang_link_list: list, lang_list = ['en', 'es'], titles = False) -> bool:
     # lang_list = ['en', 'es']
@@ -37,7 +38,7 @@ def loadDataSet(file_name: str):
         reader = csv.DictReader(csv_file)
         print(type(reader))
         for row in reader:
-            data_set.append({'year':row['year'], 'time':row['time'], 'header':row['header'], 'article':row['article'], 'article2':row['article2'], 'blurb':row['blurb'], 'altblurb':row['altblurb'], 'altblurb2':row['altblurb2'], 'altblurb3':row['altblurb3'], 'altblurb4':row['altblurb4']})
+            data_set.append({'year':row['year'], 'time':row['time'], 'header':row['header'], 'article':row['article'], 'article2':row['article2']})
     # return pandas.read_csv(file_name, usecols=['year','time','header','article','article2'], dtype={'year':str,'time':str,'header':str,'article':str,'article2':str})
     return data_set
 
@@ -98,17 +99,61 @@ def dataCleanMultiLang():
         article2 = articleTitleCleanup(row['article2'])
         if article != "":
             zh, es = checkLangLinks(article)
-            cleaned.append({"year": row['year'], "time": row['time'], "article": article, "zh": zh['zh'], "es": es['es'], "zh_title": zh['zh_title'], "es_title": es['es_title'], 'blurb':row['blurb'], 'altblurb':row['altblurb'], 'altblurb2':row['altblurb2'], 'altblurb3':row['altblurb3'], 'altblurb4':row['altblurb4']})
+            cleaned.append({"year": row['year'], "time": row['time'], "article": article, "zh": zh['zh'], "es": es['es'], "zh_title": zh['zh_title'], "es_title": es['es_title']})
         
         if article2 != '':
             zh, es = checkLangLinks(article2)
-            cleaned.append({"year": row['year'], "time": row['time'], "article": article2, "zh": zh['zh'], "es": es['es'], "zh_title": zh['zh_title'], "es_title": es['es_title'], 'blurb':row['blurb'], 'altblurb':row['altblurb'], 'altblurb2':row['altblurb2'], 'altblurb3':row['altblurb3'], 'altblurb4':row['altblurb4']})
+            cleaned.append({"year": row['year'], "time": row['time'], "article": article2, "zh": zh['zh'], "es": es['es'], "zh_title": zh['zh_title'], "es_title": es['es_title']})
 
-        utl.writeRowsCSV(cleaned, fieldnames=["year", "time", "article", "zh", "es", "zh_title", "es_title", "blurb", 'altblurb', 'altblurb2', 'altblurb3', 'altblurb4'], filenames='posted_itn_blurbs.csv')
+        utl.writeRowsCSV(cleaned, fieldnames=["year", "time", "article", "zh", "es", "zh_title", "es_title"], filenames='posted_itn.csv')
 
     print(posted_counter)    
 
-dataCleanMultiLang()
+
+def infoboxCollecting(source: str):
+    data_set = infobox.loadDataSet(source)
+    posted_counter = 0
+    article_counter = 0
+    
+    for entry in data_set:
+        result = []
+        if not isPosted(entry['header']):
+            continue
+        posted_counter += 1
+        print(entry['header'])
+
+        article = articleTitleCleanup(entry['article'])
+        article2 = articleTitleCleanup(entry['article2'])
+
+        if article != "":
+            article_counter += 1
+            has_infobox, infobox_type = infobox.getInfobox(article)
+            result.append({"year": entry['year'], "time": entry['time'], "article": article, "itn_header": entry['header'], "has_infobox": has_infobox, "infobox_type": infobox_type})
+
+        if article2 != "":
+            article_counter += 1
+            has_infobox, infobox_type = infobox.getInfobox(article2)
+            result.append({"year": entry['year'], "time": entry['time'], "article": article2, "itn_header": entry['header'], "has_infobox": has_infobox, "infobox_type": infobox_type})
+
+        utl.writeRowsCSV(result, fieldnames=['year', 'time', 'article', 'itn_header', 'has_infobox', 'infobox_type'], filenames='infobox_itn.csv')
+
+
+
+# def blurbCollecting(source: str):
+#     raw_data = loadDataSet('itns.csv')
+#     posted_counter = 0
+
+#     for row in raw_data:
+#         cleaned = []
+#         if not isPosted(row['header']):
+#             continue
+#         posted_counter += 1
+#         print(row['header'])
+
+#         article = articleTitleCleanup(row['article'])
+#         article2 = articleTitleCleanup(row['article2'])
+        
+#         utl.writeRowsCSV(cleaned, fieldnames=["year", "time", "article", "zh", "es", "zh_title", "es_title"], filenames='posted_itn.csv')
 
 
 
