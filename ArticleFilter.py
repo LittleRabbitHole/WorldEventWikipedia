@@ -112,12 +112,14 @@ def apiErrorCheck(headers: dict):
     else:
         return (False, "no errors")
 
+# check if the return is json
 def returnJsonCheck(response) -> dict:
     try:
         return response.json()
     except:
         print("ERROR")
         print(response)
+        print(response.headers)
         sys.exit("json error")
     
 # check if a page fits our defined params => 

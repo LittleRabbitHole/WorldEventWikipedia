@@ -19,6 +19,8 @@ def getMultiLang(lang_link_list: list, lang_list = ['en', 'es'], titles = False)
 
 def articleTitleCleanup(article: str, qutation = False, styling = False):
     article_cleaned = re.sub(r'<!--.+?-->', "", article).strip()
+    article_cleaned = re.sub(r'<!--', "", article_cleaned).strip()
+    article_cleaned = re.sub(r'-->', "", article_cleaned).strip()
     if qutation and styling:
         article_cleaned = article_cleaned[1:-2].strip()
         article_cleaned = re.sub(r'<.+?>', "", article_cleaned).strip()
@@ -110,8 +112,8 @@ def dataCleanMultiLang():
     print(posted_counter)    
 
 
-def infoboxCollecting(source: str):
-    data_set = infobox.loadDataSet(source)
+def infoboxCollecting(source: str, position=None):
+    data_set = infobox.loadDataSet(source, position)
     posted_counter = 0
     article_counter = 0
     
@@ -128,16 +130,20 @@ def infoboxCollecting(source: str):
         if article != "":
             article_counter += 1
             has_infobox, infobox_type = infobox.getInfobox(article)
+            if infobox_type is "missing|":
+                continue
             result.append({"year": entry['year'], "time": entry['time'], "article": article, "itn_header": entry['header'], "has_infobox": has_infobox, "infobox_type": infobox_type})
 
         if article2 != "":
             article_counter += 1
             has_infobox, infobox_type = infobox.getInfobox(article2)
+            if infobox_type is "missing|":
+                continue
             result.append({"year": entry['year'], "time": entry['time'], "article": article2, "itn_header": entry['header'], "has_infobox": has_infobox, "infobox_type": infobox_type})
 
         utl.writeRowsCSV(result, fieldnames=['year', 'time', 'article', 'itn_header', 'has_infobox', 'infobox_type'], filenames='infobox_itn.csv')
 
-
+infoboxCollecting('itns.csv', '[Posted] <strike>Replica tomb and </strike>mummies discovered')
 
 # def blurbCollecting(source: str):
 #     raw_data = loadDataSet('itns.csv')
