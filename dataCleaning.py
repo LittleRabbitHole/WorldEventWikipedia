@@ -44,7 +44,7 @@ def loadDataSet(file_name: str):
         print(type(reader))
         for row in reader:
             data_set.append({'year': row['year'], 'time': row['time'], 'header': row['header'], 'article': row['article'], 'article2': row['article2'], 'blurb': row['blurb'],
-                             'altblurb': row['altblurb'], 'altblurb1': row['altblurb1'], 'altblurb2': row['altblurb2'], 'altblurb3': row['altblurb3'], 'altblurb4': row['altblurb4']})
+                             'altblurb': row['altblurb'], 'altblurb2': row['altblurb2'], 'altblurb3': row['altblurb3'], 'altblurb4': row['altblurb4']})
     # return pandas.read_csv(file_name, usecols=['year','time','header','article','article2'], dtype={'year':str,'time':str,'header':str,'article':str,'article2':str})
     return data_set
 
@@ -118,9 +118,12 @@ def dataCleanMultiLang():
             ), "article": article2, "zh": zh['zh'], "es": es['es'], "zh_title": zh['zh_title'], "es_title": es['es_title']})
 
         utl.writeRowsCSV(cleaned, fieldnames=[
-                         "year", "time", "header", "article", "zh", "es", "zh_title", "es_title"], filenames='posted_itn.csv')
+                         "year", "time", "header", "article", "zh", "es", "zh_title", "es_title"], filenames='posted_itn_n.csv')
 
     print(posted_counter)
+
+
+dataCleanMultiLang()
 
 
 def infoboxCollecting(source: str, position=None):
@@ -180,8 +183,6 @@ def blurbCollecting(source: str):
         blurb = itnFieldCleanup(row['blurb'], qutation=True, styling=True)
         altblurb = itnFieldCleanup(
             row['altblurb'], qutation=True, styling=True) if row['altblurb'] is not "" else ""
-        altblurb1 = itnFieldCleanup(
-            row['altblurb1'], qutation=True, styling=True) if row['altblurb1'] is not "" else ""
         altblurb2 = itnFieldCleanup(
             row['altblurb2'], qutation=True, styling=True) if row['altblurb2'] is not "" else ""
         altblurb3 = itnFieldCleanup(
@@ -190,11 +191,11 @@ def blurbCollecting(source: str):
             row['altblurb4'], qutation=True, styling=True) if row['altblurb4'] is not "" else ""
 
         cleaned.append({"year": row['year'], "time": row['time'], "itn_header": header,
-                        "article": article, "article2": article2, "blurb": blurb, "altblurb": altblurb, "altblurb1": altblurb1,
+                        "article": article, "article2": article2, "blurb": blurb, "altblurb": altblurb,
                         "altblurb2": altblurb2, "altblurb3": altblurb3, "altblurb4": altblurb4})
 
         utl.writeRowsCSV(cleaned, fieldnames=["year", "time", "itn_header", "article", "article2", "blurb",
-                                              "altblurb", "altblurb1", "altblurb2", "altblurb3", "altblurb4"], filenames='blurb_itn.csv')
+                                              "altblurb", "altblurb2", "altblurb3", "altblurb4"], filenames='blurb_itn.csv')
 
 
-blurbCollecting("itns.csv")
+# blurbCollecting("itns.csv")
