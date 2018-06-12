@@ -19,16 +19,16 @@ def getMultiLang(lang_link_list: list, lang_list=['en', 'es'], titles=False) -> 
     return langs
 
 
-def itnFieldCleanup(article: str, qutation=False, styling=False):
-    article_cleaned = re.sub(r'<!--.+?-->', "", article).strip()
+def itnFieldCleanup(field: str, quotation=False, styling=False):
+    article_cleaned = re.sub(r'<!--.+?-->', "", field).strip()
     article_cleaned = re.sub(r'<!--', "", article_cleaned).strip()
     article_cleaned = re.sub(r'-->', "", article_cleaned).strip()
-    if qutation and styling:
+    if quotation and styling:
         article_cleaned = article_cleaned[1:-2].strip()
         article_cleaned = re.sub(r'<.+?>', "", article_cleaned).strip()
         article_cleaned = re.sub(r'</.+?>', "", article_cleaned).strip()
 
-    if qutation and re.match(r'^".*"$', article_cleaned):
+    if quotation and re.match(r'^".*"$', article_cleaned):
         article_cleaned = article_cleaned[1:-2].strip()
     if styling and re.match(r'<.+?>.+?</.+?>', article_cleaned):
         article_cleaned = re.sub(r'<.+?>', "", article_cleaned).strip()
