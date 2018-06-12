@@ -75,7 +75,7 @@ def checkLangLinks(title: str, last=False):
 
     if 'missing' in r_json['query']['pages'][0] and r_json['query']['pages'][0]['missing'] and last:
         print(title)
-        return checkLangLinks(itnFieldCleanup(title, qutation=True))
+        return checkLangLinks(itnFieldCleanup(title, quotation=True))
 
     multi_lang_list = r_json['query']['pages'][0]['langlinks'] if 'langlinks' in r_json['query']['pages'][0] else []
 
@@ -174,21 +174,21 @@ def blurbCollecting(source: str):
         posted_counter += 1
         print(row['header'])
 
-        article = itnFieldCleanup(row['article'], qutation=True, styling=True)
+        article = itnFieldCleanup(row['article'], quotation=True, styling=True)
         article2 = itnFieldCleanup(
-            row['article2'], qutation=True, styling=True)
+            row['article2'], quotation=True, styling=True)
 
         header = row['header'].strip()
 
-        blurb = itnFieldCleanup(row['blurb'], qutation=True, styling=True)
+        blurb = itnFieldCleanup(row['blurb'], quotation=True, styling=True)
         altblurb = itnFieldCleanup(
-            row['altblurb'], qutation=True, styling=True) if row['altblurb'] is not "" else ""
+            row['altblurb'], quotation=True, styling=True) if row['altblurb'] is not "" else ""
         altblurb2 = itnFieldCleanup(
-            row['altblurb2'], qutation=True, styling=True) if row['altblurb2'] is not "" else ""
+            row['altblurb2'], quotation=True, styling=True) if row['altblurb2'] is not "" else ""
         altblurb3 = itnFieldCleanup(
-            row['altblurb3'], qutation=True, styling=True) if row['altblurb3'] is not "" else ""
+            row['altblurb3'], quotation=True, styling=True) if row['altblurb3'] is not "" else ""
         altblurb4 = itnFieldCleanup(
-            row['altblurb4'], qutation=True, styling=True) if row['altblurb4'] is not "" else ""
+            row['altblurb4'], quotation=True, styling=True) if row['altblurb4'] is not "" else ""
 
         cleaned.append({"year": row['year'], "time": row['time'], "itn_header": header,
                         "article": article, "article2": article2, "blurb": blurb, "altblurb": altblurb,
