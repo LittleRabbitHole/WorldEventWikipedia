@@ -123,7 +123,7 @@ def dataCleanMultiLang():
     print(posted_counter)
 
 
-dataCleanMultiLang()
+# dataCleanMultiLang()
 
 
 def infoboxCollecting(source: str, position=None):
