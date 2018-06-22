@@ -107,7 +107,7 @@ if __name__ == "__main__":
     # Initialize a CountVectorizer object: count_vectorizer
     # https://medium.com/mlreview/topic-modeling-with-scikit-learn-e80d33668730
     no_features = 1000
-    no_topics = 10
+    no_topics = 5
     no_top_words = 10
     
     # NMF is able to use tf-idf
