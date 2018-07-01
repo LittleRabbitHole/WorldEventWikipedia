@@ -22,7 +22,7 @@ from nltk.stem import WordNetLemmatizer
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import NMF, LatentDirichletAllocation
-
+import collections
 
 wordnet_lemmatizer = WordNetLemmatizer()
 
@@ -65,9 +65,13 @@ def clean_blurb(c):
         #final remove leading/trailing puctuation each word
         word_lst1 = [s.strip("`~()?:!.,;'""&*<=+ >#|-/{}%$^@[]") for s in clean_lst]
         #remove non-letter in middle
-        word_lst = [re.sub(r'[^a-zA-Z]+', ' ', s) for s in word_lst1]
+        #word_lst = [re.sub(r'[^a-zA-Z]+', ' ', s) for s in word_lst1]
+        word_lst = [s.replace('`~()?:!.,;""&*<=+ >#|-/{}%$^@[]', ' ') for s in word_lst1]
+        word_lst = [s.replace("'", '') for s in word_lst]
         #remove stop words
         filtered_words = [word for word in word_lst if word not in stopwords.words('english')]
+        add_lst = ["n", "s"]
+        filtered_words = [word for word in filtered_words if word not in add_lst]
         #remove all non-letters
         filtered_stopwords = [re.sub(r'^[^a-zA-Z]+$', '', s) for s in filtered_words]
         filtered_stopwords = list(filter(None, filtered_stopwords))
@@ -87,6 +91,34 @@ def clean_blurb(c):
     #return result  
     return cleanedtext
 
+#to get the distribution of the top words and write out
+def topWords(blurb_data_clean):
+    word_lst = []
+    #m = 0
+    for blurb in blurb_data_clean:
+        #m+=1
+        #if m%10000==0: print(m) 
+        blurb_lst = blurb.split(" ")
+        blurb_lst = [x.replace('"',"").strip() for x in blurb_lst]
+        blurb_lst = [x for x in blurb_lst if x]
+        word_lst += blurb_lst #24034
+    
+    counter=collections.Counter(word_lst)
+    top = counter.most_common(300000)
+    
+    outString = '"word", "count"'
+    i = 0
+    for item in top:
+        i += 1
+        count = str(item[1])
+        word = '"{}"'.format(item[0])
+        outString += '\n'
+        outString += ', '.join([word, count])
+    
+    with open('/Users/Ang/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEvents&Wikipedia/data/Blurbs_wordsort.csv', 'w') as f:
+        f.write(outString)
+        f.close()
+        
 
 def display_topics(model, feature_names, no_top_words):
     for topic_idx, topic in enumerate(model.components_):
@@ -103,10 +135,11 @@ if __name__ == "__main__":
     blurb_data['all_blurbs'] = blurb_data["blurb"] + " " + blurb_data["altblurb"] + blurb_data["altblurb2"] + blurb_data["altblurb3"]+ blurb_data["altblurb4"]
     blurb_data['clean_blurbs'] = blurb_data.apply(clean_blurb, axis=1)
     blurb_data_clean = blurb_data['clean_blurbs'].tolist()
+    #topWords(blurb_data_clean)
     
     # Initialize a CountVectorizer object: count_vectorizer
     # https://medium.com/mlreview/topic-modeling-with-scikit-learn-e80d33668730
-    no_features = 1000
+    no_features = 803
     no_topics = 5
     no_top_words = 10
     
