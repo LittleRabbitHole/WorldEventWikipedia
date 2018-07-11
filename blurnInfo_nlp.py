@@ -23,8 +23,20 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import NMF, LatentDirichletAllocation
 import collections
+import pycountry
 
 wordnet_lemmatizer = WordNetLemmatizer()
+
+
+def listofContries():
+    listCountries = []
+    for i in range(len(list(pycountry.countries))):
+        name = list(pycountry.countries)[i].name
+        name = name.split(', ')
+        listCountries+=name
+    return listCountries
+
+listCountries = listofContries()
 
 
 #mapping nltk lemmatizer pos taggs
@@ -66,12 +78,14 @@ def clean_blurb(c):
         word_lst1 = [s.strip("`~()?:!.,;'""&*<=+ >#|-/{}%$^@[]") for s in clean_lst]
         #remove non-letter in middle
         #word_lst = [re.sub(r'[^a-zA-Z]+', ' ', s) for s in word_lst1]
-        word_lst = [s.replace('`~()?:!.,;""&*<=+ >#|-/{}%$^@[]', ' ') for s in word_lst1]
+        word_lst = [s.translate({ord(c): " " for c in "!@#$%^&*()[]{};:,./<>?\|`–~-=_+"}) for s in word_lst1]
         word_lst = [s.replace("'", '') for s in word_lst]
         #remove stop words
         filtered_words = [word for word in word_lst if word not in stopwords.words('english')]
         add_lst = ["n", "s"]
         filtered_words = [word for word in filtered_words if word not in add_lst]
+        #remove all contries
+        filtered_words = [word for word in filtered_words if word not in listCountries] 
         #remove all non-letters
         filtered_stopwords = [re.sub(r'^[^a-zA-Z]+$', '', s) for s in filtered_words]
         filtered_stopwords = list(filter(None, filtered_stopwords))
@@ -126,10 +140,18 @@ def display_topics(model, feature_names, no_top_words):
         print (" ".join([feature_names[i] for i in topic.argsort()[:-no_top_words - 1:-1]]))
 
 
+def checkDeath(row):
+    if "death of" in row['itn_header'].lower():
+        return 1
+    else:
+        return 0
+
 if __name__ == "__main__":
 
     blurb_data = pd.read_table("/Users/Ang/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEvents&Wikipedia/data/blurb_itn.csv", 
-                             sep=',', error_bad_lines = False)
+                             sep=',', error_bad_lines = False)#3151
+    blurb_data["Death"] = blurb_data.apply(checkDeath, axis=1)
+    blurb_data = blurb_data.loc[blurb_data['Death'] == 0] #3116
     blurb_data.columns.values
     blurb_data = blurb_data.fillna(" ")
     blurb_data['all_blurbs'] = blurb_data["blurb"] + " " + blurb_data["altblurb"] + blurb_data["altblurb2"] + blurb_data["altblurb3"]+ blurb_data["altblurb4"]
@@ -140,8 +162,8 @@ if __name__ == "__main__":
     # Initialize a CountVectorizer object: count_vectorizer
     # https://medium.com/mlreview/topic-modeling-with-scikit-learn-e80d33668730
     no_features = 803
-    no_topics = 5
-    no_top_words = 10
+    no_topics = 4
+    no_top_words = 30
     
     # NMF is able to use tf-idf
     tfidf_vectorizer = TfidfVectorizer(max_df=0.95, min_df=2, max_features=no_features, stop_words='english')
