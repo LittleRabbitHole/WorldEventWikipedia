@@ -32,7 +32,7 @@ def listofContries():
     listCountries = []
     for i in range(len(list(pycountry.countries))):
         name = list(pycountry.countries)[i].name
-        name = name.split(', ')
+        name = name.lower().split(', ')
         listCountries+=name
     return listCountries
 
@@ -82,21 +82,39 @@ def clean_blurb(c):
         word_lst = [s.replace("'", '') for s in word_lst]
         #remove stop words
         filtered_words = [word for word in word_lst if word not in stopwords.words('english')]
-        add_lst = ["n", "s"]
-        filtered_words = [word for word in filtered_words if word not in add_lst]
+        
         #remove all contries
         filtered_words = [word for word in filtered_words if word not in listCountries] 
         #remove all non-letters
         filtered_stopwords = [re.sub(r'^[^a-zA-Z]+$', '', s) for s in filtered_words]
         filtered_stopwords = list(filter(None, filtered_stopwords))
-        #lemm      
-        tagged = nltk.pos_tag(filtered_stopwords)
-        lemed_lst = [wordnet_lemmatizer.lemmatize(x[0], get_wordnet_pos(x[1])) for x in tagged]
         
         #remove none
-        final__word_lst = list(filter(None, lemed_lst))
+        final_word_lst = list(filter(None, filtered_stopwords))
+
+        #lemm      
+        tagged = nltk.pos_tag(final_word_lst)
+        lemed_lst = [wordnet_lemmatizer.lemmatize(x[0], get_wordnet_pos(x[1])) for x in tagged]
+        
+        add_lst = ["n", "u", "s",'united', 'state', 'blurb', 's', 'first', 'second', 'third', 'fourth', "two","russia", "russian","000","french","syrian","australian","turkish","zealand","london","africa","japanese","england","f","german","york","2013","san","n","indian", "european", "kingdom", "egyptian"]
+        
+        final__word_lst = [word for word in lemed_lst if word not in add_lst]
+
         #rejoin into sentence
         cleanedtext = ' '.join(final__word_lst)
+        
+        #need to do it again
+        clean_lst = cleanedtext.split(' ')
+        clean_lst = [re.sub(r'^[^a-zA-Z]+$', '', s) for s in clean_lst]
+        clean_lst = [word for word in clean_lst if word not in stopwords.words('english')]
+        clean_lst = list(filter(None, clean_lst))
+        tagged = nltk.pos_tag(clean_lst)
+        clean_lst = [wordnet_lemmatizer.lemmatize(x[0], get_wordnet_pos(x[1])) for x in tagged]
+        clean_lst = [word for word in clean_lst if word not in add_lst]
+        clean_lst = list(filter(None, clean_lst))
+        
+        cleanedtext = ' '.join(clean_lst)
+        
     else:
         #clean_lst = [""]
         #rejoin into sentence
@@ -117,6 +135,7 @@ def topWords(blurb_data_clean):
         blurb_lst = [x for x in blurb_lst if x]
         word_lst += blurb_lst #24034
     
+    
     counter=collections.Counter(word_lst)
     top = counter.most_common(300000)
     
@@ -129,7 +148,7 @@ def topWords(blurb_data_clean):
         outString += '\n'
         outString += ', '.join([word, count])
     
-    with open('/Users/Ang/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEvents&Wikipedia/data/Blurbs_wordsort.csv', 'w') as f:
+    with open('/Users/Ang/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEvents&Wikipedia/data/Blurbs_wordsort_v2.csv', 'w') as f:
         f.write(outString)
         f.close()
         
@@ -141,29 +160,48 @@ def display_topics(model, feature_names, no_top_words):
 
 
 def checkDeath(row):
-    if "death of" in row['itn_header'].lower():
+    if "death of" in row['header'].lower():
         return 1
     else:
         return 0
 
-if __name__ == "__main__":
+def checkPosted(row):
+    if "[posted]" in row['header'].lower():
+        return 1
+    else:
+        return 0
 
-    blurb_data = pd.read_table("/Users/Ang/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEvents&Wikipedia/data/blurb_itn.csv", 
-                             sep=',', error_bad_lines = False)#3151
+
+
+if __name__ == "__main__":
+    itns_data = pd.read_table("/Users/Ang/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEvents&Wikipedia/data/itns_forblurbs.csv", 
+                             sep=',', error_bad_lines = False)#7690
+    itns_data["posted"] = itns_data.apply(checkPosted, axis=1)
+    itns_data_posted = itns_data.loc[itns_data['posted'] == 1] #3151
+    blurb_data = itns_data_posted[['year', 'time', 'header', 'article', 'article2',
+                                   'blurb', 'altblurb', 'altblurb2','altblurb3', 'altblurb4']]
+    blurb_data = blurb_data.fillna(" ")
+    #blurb_data = pd.read_table("/Users/Ang/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEvents&Wikipedia/data/blurb_itn.csv", 
+    #                         sep=',', error_bad_lines = False)#3151
+    
     blurb_data["Death"] = blurb_data.apply(checkDeath, axis=1)
     blurb_data = blurb_data.loc[blurb_data['Death'] == 0] #3116
     blurb_data.columns.values
-    blurb_data = blurb_data.fillna(" ")
+    
     blurb_data['all_blurbs'] = blurb_data["blurb"] + " " + blurb_data["altblurb"] + blurb_data["altblurb2"] + blurb_data["altblurb3"]+ blurb_data["altblurb4"]
+    blurb_data['all_blurbs'] = blurb_data['all_blurbs'].str.replace(r'<!--.+?-->', '', case=False)
+    
     blurb_data['clean_blurbs'] = blurb_data.apply(clean_blurb, axis=1)
+    #blurb_data[['all_blurbs','clean_blurbs']].to_csv("/Users/Ang/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEvents&Wikipedia/data/itnsblurbs_check_v1.csv")
+    
     blurb_data_clean = blurb_data['clean_blurbs'].tolist()
     #topWords(blurb_data_clean)
     
     # Initialize a CountVectorizer object: count_vectorizer
     # https://medium.com/mlreview/topic-modeling-with-scikit-learn-e80d33668730
-    no_features = 803
-    no_topics = 4
-    no_top_words = 30
+    no_features = 800
+    no_topics = 8
+    no_top_words = 20
     
     # NMF is able to use tf-idf
     tfidf_vectorizer = TfidfVectorizer(max_df=0.95, min_df=2, max_features=no_features, stop_words='english')
