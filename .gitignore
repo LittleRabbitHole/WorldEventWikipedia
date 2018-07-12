@@ -30,3 +30,4 @@ Temporary Items
 .vscode/
 *.csv
 __pycache__/
+*.p
