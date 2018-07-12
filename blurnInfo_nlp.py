@@ -96,7 +96,7 @@ def clean_blurb(c):
         tagged = nltk.pos_tag(final_word_lst)
         lemed_lst = [wordnet_lemmatizer.lemmatize(x[0], get_wordnet_pos(x[1])) for x in tagged]
         
-        add_lst = ["n", "u", "s",'united', 'state', 'blurb', 's', 'first', 'second', 'third', 'fourth', "two","russia", "russian","000","french","syrian","australian","turkish","zealand","london","africa","japanese","england","f","german","york","2013","san","n","indian", "european", "kingdom", "egyptian"]
+        add_lst = ["n", "u", "s",'united', 'state','italian', 'slovenian', 'american','america','blurb', 's', 'first', 'second', 'third', 'fourth', "two","russia", "russian","000","french","syrian","australian","turkish","zealand","london","africa","japanese","england","f","german","york","2013","san","n","indian", "european", "kingdom", "egyptian"]
         
         final__word_lst = [word for word in lemed_lst if word not in add_lst]
 
@@ -200,8 +200,8 @@ if __name__ == "__main__":
     # Initialize a CountVectorizer object: count_vectorizer
     # https://medium.com/mlreview/topic-modeling-with-scikit-learn-e80d33668730
     no_features = 800
-    no_topics = 8
-    no_top_words = 20
+    no_topics = 6
+    no_top_words = 30
     
     # NMF is able to use tf-idf
     tfidf_vectorizer = TfidfVectorizer(max_df=0.95, min_df=2, max_features=no_features, stop_words='english')
