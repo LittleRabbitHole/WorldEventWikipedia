@@ -180,11 +180,11 @@ if __name__ == "__main__":
     itns_data_posted = itns_data.loc[itns_data['posted'] == 1] #3151
     blurb_data = itns_data_posted[['year', 'time', 'header', 'article', 'article2',
                                    'blurb', 'altblurb', 'altblurb2','altblurb3', 'altblurb4']]
-    blurb_data['blurb'] = blurb_data['blurb'].str.replace(r'<!--.+?-->', '', case=False)
-    blurb_data['altblurb'] = blurb_data['altblurb'].str.replace(r'<!--.+?-->', '', case=False)
-    blurb_data['altblurb2'] = blurb_data['altblurb2'].str.replace(r'<!--.+?-->', '', case=False)
-    blurb_data['altblurb3'] = blurb_data['altblurb3'].str.replace(r'<!--.+?-->', '', case=False)
-    blurb_data['altblurb4'] = blurb_data['altblurb4'].str.replace(r'<!--.+?-->', '', case=False)
+    #blurb_data['blurb'] = blurb_data['blurb'].str.replace(r'<!--.+?-->', '', case=False)
+    #blurb_data['altblurb'] = blurb_data['altblurb'].str.replace(r'<!--.+?-->', '', case=False)
+    #blurb_data['altblurb2'] = blurb_data['altblurb2'].str.replace(r'<!--.+?-->', '', case=False)
+    #blurb_data['altblurb3'] = blurb_data['altblurb3'].str.replace(r'<!--.+?-->', '', case=False)
+    #blurb_data['altblurb4'] = blurb_data['altblurb4'].str.replace(r'<!--.+?-->', '', case=False)
 
     blurb_data = blurb_data.fillna(" ")
     #blurb_data = pd.read_table("/Users/Ang/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEvents&Wikipedia/data/blurb_itn.csv", 
@@ -219,6 +219,7 @@ if __name__ == "__main__":
     # Run NMF
     nmf = NMF(n_components=no_topics, random_state=1, alpha=.1, l1_ratio=.5, init='nndsvd').fit(tfidf)
     display_topics(nmf, tfidf_feature_names, no_top_words)
+    
     predict = nmf.transform(tfidf)
     
     # LDA can only use raw term counts for LDA because it is a probabilistic graphical model
