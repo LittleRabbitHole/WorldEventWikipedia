@@ -19,7 +19,7 @@ cn_set = data_set[data_set.language.isin(['cn'])]
 
 col_name_T = ['Total edits']
 col_name_E = ['Average edits per user']
-col_name_R = ['References']
+col_name_R = ['References', 'Unique references']
 col_name_L = ['Links from this page', 'Links to this page', 'External links']
 col_name_P = ['P_bot_edit', 'P_revert_edit', 'P_IP_edit', 'P_top_edit', 'P_minor_edit']
 
@@ -29,16 +29,16 @@ print(data_set.dtypes)
 # box_es = es_set.boxplot(column=col_name)
 # box_cn = cn_set.boxplot(column=col_name)
 
-box_group_TL = data_set.boxplot(column=col_name_T, by=['language'], showfliers=True)
-box_group_TC = data_set.boxplot(column=col_name_T, by=['category'], rot=45, showfliers=True)
-box_group_EL = data_set.boxplot(column=col_name_E, by=['language'], showfliers=True)
-box_group_EC = data_set.boxplot(column=col_name_E, by=['category'], rot=45, showfliers=True)
+# box_group_TL = data_set.boxplot(column=col_name_T, by=['language'], showfliers=True)
+# box_group_TC = data_set.boxplot(column=col_name_T, by=['category'], rot=45, showfliers=True)
+# box_group_EL = data_set.boxplot(column=col_name_E, by=['language'], showfliers=True)
+# box_group_EC = data_set.boxplot(column=col_name_E, by=['category'], rot=45, showfliers=True)
 box_group_RL = data_set.boxplot(column=col_name_R, by=['language'], showfliers=True)
 box_group_RC = data_set.boxplot(column=col_name_R, by=['category'], rot=45, showfliers=True)
-box_group_LL = data_set.boxplot(column=col_name_L, by=['language'], showfliers=True)
-box_group_LC = data_set.boxplot(column=col_name_L, by=['category'], rot=45, showfliers=True)
-box_group_PL = data_set.boxplot(column=col_name_P, by=['language'], showfliers=True)
-box_group_PC = data_set.boxplot(column=col_name_P, by=['category'], rot=45, showfliers=True)
+# box_group_LL = data_set.boxplot(column=col_name_L, by=['language'], showfliers=True)
+# box_group_LC = data_set.boxplot(column=col_name_L, by=['category'], rot=45, showfliers=True)
+# box_group_PL = data_set.boxplot(column=col_name_P, by=['language'], showfliers=True)
+# box_group_PC = data_set.boxplot(column=col_name_P, by=['category'], rot=45, showfliers=True)
 
 # plt.axes = box_group_PL
 
