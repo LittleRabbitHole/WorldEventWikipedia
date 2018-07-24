@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Apr 27 13:40:35 2018
-
+Topic modeling of the Wikipedia itns blurbs
 @author: Ang
 """
 
@@ -180,6 +180,12 @@ if __name__ == "__main__":
     itns_data_posted = itns_data.loc[itns_data['posted'] == 1] #3151
     blurb_data = itns_data_posted[['year', 'time', 'header', 'article', 'article2',
                                    'blurb', 'altblurb', 'altblurb2','altblurb3', 'altblurb4']]
+    #blurb_data['blurb'] = blurb_data['blurb'].str.replace(r'<!--.+?-->', '', case=False)
+    #blurb_data['altblurb'] = blurb_data['altblurb'].str.replace(r'<!--.+?-->', '', case=False)
+    #blurb_data['altblurb2'] = blurb_data['altblurb2'].str.replace(r'<!--.+?-->', '', case=False)
+    #blurb_data['altblurb3'] = blurb_data['altblurb3'].str.replace(r'<!--.+?-->', '', case=False)
+    #blurb_data['altblurb4'] = blurb_data['altblurb4'].str.replace(r'<!--.+?-->', '', case=False)
+
     blurb_data = blurb_data.fillna(" ")
     #blurb_data = pd.read_table("/Users/Ang/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEvents&Wikipedia/data/blurb_itn.csv", 
     #                         sep=',', error_bad_lines = False)#3151
@@ -187,9 +193,11 @@ if __name__ == "__main__":
     blurb_data["Death"] = blurb_data.apply(checkDeath, axis=1)
     blurb_data = blurb_data.loc[blurb_data['Death'] == 0] #3116
     blurb_data.columns.values
+    #blurb_data.to_csv("/Users/Ang/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEvents&Wikipedia/data/itnsblurbs_V2.csv")
     
     blurb_data['all_blurbs'] = blurb_data["blurb"] + " " + blurb_data["altblurb"] + blurb_data["altblurb2"] + blurb_data["altblurb3"]+ blurb_data["altblurb4"]
     blurb_data['all_blurbs'] = blurb_data['all_blurbs'].str.replace(r'<!--.+?-->', '', case=False)
+    #blurb_data[['all_blurbs','clean_blurbs']].to_csv("/Users/Ang/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEvents&Wikipedia/data/itnsblurbs_check_v1.csv")
     
     blurb_data['clean_blurbs'] = blurb_data.apply(clean_blurb, axis=1)
     #blurb_data[['all_blurbs','clean_blurbs']].to_csv("/Users/Ang/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEvents&Wikipedia/data/itnsblurbs_check_v1.csv")
@@ -211,6 +219,8 @@ if __name__ == "__main__":
     # Run NMF
     nmf = NMF(n_components=no_topics, random_state=1, alpha=.1, l1_ratio=.5, init='nndsvd').fit(tfidf)
     display_topics(nmf, tfidf_feature_names, no_top_words)
+    
+    predict = nmf.transform(tfidf)
     
     # LDA can only use raw term counts for LDA because it is a probabilistic graphical model
     tf_vectorizer = CountVectorizer(max_df=0.95, min_df=2, max_features=no_features, stop_words='english')
