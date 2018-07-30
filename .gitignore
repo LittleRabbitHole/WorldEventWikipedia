@@ -28,6 +28,7 @@ Temporary Items
 # Develop environment
 .vscode/
 __pycache__/
+report draft/
 
 # Data to ignore
 plots/
