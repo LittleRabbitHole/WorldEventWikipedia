@@ -50,8 +50,10 @@ print(data_set.dtypes)
 # box_group_PL = data_set.boxplot(column=col_name_P, by=['language'], showfliers=True)
 # box_group_PC = data_set.boxplot(column=col_name_P, by=['category'], rot=45, showfliers=True)
 
-box_group_RC_en = en_set.boxplot(column=col_name_R, by=['category'], rot=60, showfliers=False)
-box_group_RC_es = es_set.boxplot(column=col_name_R, by=['category'], rot=60, showfliers=False)
-box_group_RC_cn = cn_set.boxplot(column=col_name_R, by=['category'], rot=60, showfliers=False)
+# box_group_RC_en = en_set.boxplot(column=col_name_R, by=['category'], rot=60, showfliers=False)
+# box_group_RC_es = es_set.boxplot(column=col_name_R, by=['category'], rot=60, showfliers=False)
+# box_group_RC_cn = cn_set.boxplot(column=col_name_R, by=['category'], rot=60, showfliers=False)
+
+box_group_PL = data_set.boxplot(column=['Editors'], by=['language'], showfliers=False)
 
 plt.show()

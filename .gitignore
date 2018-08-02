@@ -29,6 +29,7 @@ Temporary Items
 .vscode/
 __pycache__/
 report draft/
+archive data/
 
 # Data to ignore
 plots/
