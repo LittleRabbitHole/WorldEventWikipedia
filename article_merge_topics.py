@@ -127,3 +127,25 @@ process_data_topic = process_data_topic.loc[process_data_topic['RD']==False]
 
 process_data_topic.to_csv("/Users/Ang/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEvents&Wikipedia/data/process_data_with_topic.csv")
                  
+
+###place
+from geotext import GeoText
+
+def rePlace(row):
+    text = row['header'] + " " + row['article']
+    text = text.translate({ord(c): " " for c in "!@#$%^&*()[]{};:,./<>?\|`–~-=_+"})
+    places = GeoText(text)
+    lst = list(places.cities) + list(places.country_mentions) 
+    return ":".join(lst)
+    
+article_data = pd.read_table("/Users/Ang/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEvents&Wikipedia/data/posted_itn_v3.csv", 
+                             sep=',', error_bad_lines = False)
+
+article_data['places'] = article_data.apply(rePlace, axis = 1) 
+article_data.to_csv("/Users/Ang/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEvents&Wikipedia/data/posted_itn_with_loc.csv")
+
+
+article_data['places'].describe()
+
+
+
