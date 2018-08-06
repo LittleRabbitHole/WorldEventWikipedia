@@ -44,6 +44,13 @@ def isRecentDeath(row) -> bool:
     return(bool(row['RD']))
 
 
+def getReturnedJSON(url: str, continue_pointer=None):
+    if not continue_pointer:
+        return(utl.returnJsonCheck(requests.get(url)))
+    else:
+        return(utl.returnJsonCheck(requests.get(url + continue_pointer)))
+
+
 # Save data to disk
 #  addition -> bool, False (default): save data to a new file; True: save data to an existing file
 #  files -> str ('all' or specified file name): which file(s) to save to
@@ -62,46 +69,117 @@ def getRVActivityByDay(article: str, lan: str, day: str) -> dict:
 
     return getRVActivityByTimePeriod(article, lan, rv_start, rv_end)
 
+
 # start: later time point
 # end: earlier time point
 def getRVActivityByTimePeriod(article: str, lan: str, start: str, end: str) -> dict:
-    result = {'edits': 0, 'minor': 0, 'section': 0, 'automatic summary': 0,
-              'editors': 0, 'references': 0, 'u_references': 0, 'content_added': 0}
+    result = {'edits': 0, 'minor': 0, 'section': 0, 'automatic summary': 0, 'anon': 0,
+              'editors': 0, 'references': 0, 'u_references': 0, 'content_add': 0, 'content_del': 0}
     editor_list = {}
 
     url = lan + ".wikipedia.com/w/api.php?action=query&prop=revisions&titles=" + \
         article + "&rvprop=ids%7Ctags%7Cflags%7Ctimestamp%7Cuser%7Csize%7Cparsedcomment%7Ccomment\
             &rvend=" + end + "&rvstart=" + start + "&rvlimit=50&format=json&formatversion=2"
-    response = utl.returnJsonCheck(requests.get(url))
-    try:
-        rv_list = response['query']['pages'][0]['revisions']
-    except KeyError as err:
-        logging.error(err)
-        logging.info(response)
-        return result
-    
-    result['edit'] = len(rv_list)
+
+    rv_list = []
+    continue_flag = True
+    continue_pointer = None
+
+    while continue_flag:
+        response = getReturnedJSON(url, continue_pointer)
+        if 'continue' not in response.keys():
+            continue_flag = False
+        else:
+            continue_flag = True
+            continue_pointer = '&rvcontinue=' + \
+                response['continue']['rvcontinue']
+            logging.info(continue_pointer)
+
+        try:
+            rv_list.append(response['query']['pages'][0]['revisions'])
+        except KeyError as err:
+            logging.error(err)
+            logging.info(response)
+            return result
+
+    #edits
+    result['edits'] = len(rv_list) 
+
     rv_oldest = rv_list[-1]
     rv_latest = rv_list[0]
 
+    rv_base_id = str(rv_oldest['parentid'])
+    rv_base_size_url = lan + ".wikipedia.com/w/api.php?action=query&prop=revisions&titles=" + \
+        article + "&rvprop=size&rvendid=" + rv_base_id + "&rvstartid=" + rv_base_id + \
+        "&rvlimit=50&format=json&formatversion=2"
+    rv_base_size = getReturnedJSON(rv_base_size_url)[
+        'query']['pages'][0]['revisions'][0]['size']
+
+    #reference + unique reference
+    result['reference'], result['unique reference'] = rvReferenceHandling(article, rv_oldest['revid'], rv_latest['revid'])
+
     for rv in reversed(rv_list):
+        #content changes
+        size_delta = rv['size'] - rv_base_size
+        if size_delta > 0:
+            result['content_add'] += size_delta
+        else:
+            result['content_del'] += abs(size_delta)
+        
+        #editor work + editors
         if rv['user'] in editor_list.keys():
-            pass
-            # editor_list[rv['user']] += 
+            editor_list[rv['user']]['edits'] += 1
+            editor_list[rv['user']]['changes'] += abs(size_delta)
+        else:
+            editor_list[rv['user']]['edits'] = 1
+            editor_list[rv['user']]['changes'] = abs(size_delta)
+        
+        #minor
+        if rv['minor']:
+            result['minor'] += 1
+        
+        #anonimous
+        if 'anon' in rv.keys():
+            result['anon'] += 1
+        
+        #section
+        if '→' in rv['prasedcomment']:
+            result['section'] += 1
+        
+        #automatic summary
+        if '←' in rv['prasedcomment']:
+            result['automatic summary'] += 1
+    
+    result['editors'] = len(editor_list.keys())
+    result['editor_work'] = editor_list
 
     return result
 
 
-def getUniqueRefNum(article: str):
-    pass
+# TODO
+def getUniqueRefNum(content: str) -> int:
+    return 0
 
 
-def getRefNum(article: str):
-    pass
+# TODO
+def getRefNum(content: str) -> int:
+    return 0
 
 
-def getRVContent(article: str, rvid: str):
-    pass
+# return (ref_delta, uref_delta)
+def rvReferenceHandling(article: str, rv_oldest_id: int, rv_latest_id: int) -> (int, int):
+    content_old = getRVContent(article, rv_oldest_id)
+    content_new = getRVContent(article, rv_latest_id)
+    
+    uref_delta = getUniqueRefNum(content_new) - getUniqueRefNum(content_old)
+    ref_delta = getRefNum(content_new) - getRefNum(content_old)
+
+    return (ref_delta, uref_delta)
+
+
+# TODO
+def getRVContent(article: str, rv_id: str) -> str:
+    return ""
 
 
 # initialize the specific dict for targeted article
@@ -119,14 +197,18 @@ def initializeDatafield(article: str, from_file=False) -> dict:
                                  'BD7': 0, 'AD1': 0, 'AD2': 0, 'AD3': 0, 'AD4': 0, 'AD5': 0, 'AD6': 0, 'AD7': 0, 'AM1': 0}
         data_field['automatic summary'] = {'D0': 0, 'BD1': 0, 'BD2': 0, 'BD3': 0, 'BD4': 0, 'BD5': 0, 'BD6': 0,
                                            'BD7': 0, 'AD1': 0, 'AD2': 0, 'AD3': 0, 'AD4': 0, 'AD5': 0, 'AD6': 0, 'AD7': 0, 'AM1': 0}
+        data_field['anon'] = {'D0': 0, 'BD1': 0, 'BD2': 0, 'BD3': 0, 'BD4': 0, 'BD5': 0, 'BD6': 0,
+                               'BD7': 0, 'AD1': 0, 'AD2': 0, 'AD3': 0, 'AD4': 0, 'AD5': 0, 'AD6': 0, 'AD7': 0, 'AM1': 0}
         data_field['editors'] = {'D0': 0, 'BD1': 0, 'BD2': 0, 'BD3': 0, 'BD4': 0, 'BD5': 0, 'BD6': 0,
                                  'BD7': 0, 'AD1': 0, 'AD2': 0, 'AD3': 0, 'AD4': 0, 'AD5': 0, 'AD6': 0, 'AD7': 0, 'AM1': 0}
         data_field['references'] = {'D0': 0, 'BD1': 0, 'BD2': 0, 'BD3': 0, 'BD4': 0, 'BD5': 0, 'BD6': 0,
                                     'BD7': 0, 'AD1': 0, 'AD2': 0, 'AD3': 0, 'AD4': 0, 'AD5': 0, 'AD6': 0, 'AD7': 0, 'AM1': 0}
         data_field['u_references'] = {'D0': 0, 'BD1': 0, 'BD2': 0, 'BD3': 0, 'BD4': 0, 'BD5': 0, 'BD6': 0,
                                       'BD7': 0, 'AD1': 0, 'AD2': 0, 'AD3': 0, 'AD4': 0, 'AD5': 0, 'AD6': 0, 'AD7': 0, 'AM1': 0}
-        data_field['content_added'] = {'D0': 0, 'BD1': 0, 'BD2': 0, 'BD3': 0, 'BD4': 0, 'BD5': 0, 'BD6': 0,
-                                       'BD7': 0, 'AD1': 0, 'AD2': 0, 'AD3': 0, 'AD4': 0, 'AD5': 0, 'AD6': 0, 'AD7': 0, 'AM1': 0}
+        data_field['content_add'] = {'D0': 0, 'BD1': 0, 'BD2': 0, 'BD3': 0, 'BD4': 0, 'BD5': 0, 'BD6': 0,
+                                     'BD7': 0, 'AD1': 0, 'AD2': 0, 'AD3': 0, 'AD4': 0, 'AD5': 0, 'AD6': 0, 'AD7': 0, 'AM1': 0}
+        data_field['content_del'] = {'D0': 0, 'BD1': 0, 'BD2': 0, 'BD3': 0, 'BD4': 0, 'BD5': 0, 'BD6': 0,
+                                     'BD7': 0, 'AD1': 0, 'AD2': 0, 'AD3': 0, 'AD4': 0, 'AD5': 0, 'AD6': 0, 'AD7': 0, 'AM1': 0}
         data_field['editor_work'] = {}
 
         return data_field
@@ -146,7 +228,7 @@ def articleActivityAfterPost():
         for time_delta in range(-7, 8):
             if time_delta < 0 and int(row['time_from_post']) >= 0:
                 time_key = 'BD' + str(abs(time_delta))
-                for key in ['edits', 'minor', 'section', 'automatic summary', 'editors', 'references', 'u_references', 'content_added']:
+                for key in ['edits', 'minor', 'section', 'automatic summary', 'anon', 'editors', 'references', 'u_references', 'content_add', 'content_del']:
                     data_field[key][time_key] = 0
                 continue
 
