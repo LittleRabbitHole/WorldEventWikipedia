@@ -53,14 +53,19 @@ def getReturnedJSON(url: str, continue_pointer=None):
 
 # Save data to disk
 #  addition -> bool, False (default): save data to a new file; True: save data to an existing file
-#  files -> str ('all' or specified file name): which file(s) to save to
-#                'all' (default): use when data contain all parts of required fields
-#                specified file name: use when data contain a single data field, data will be save to the specified file
 #  article -> str, specify the article name when data is targeted at a single article, only when addition is True
 #  kind -> str ('csv' or 'pickle') specify what kind of file type to be stored in
 # TODO
-def saveData(data: dict, files='all', addition=False, article=None, kind='csv'):
-    pass
+def saveData(data: list, file, addition=False, article=None, kind=['csv']):
+	if 'csv' in kind:
+		for item in data:
+			del item['tag']
+		with open(file + '.csv', 'w') as csv_file:
+			pass
+	
+	if 'pickle'	in kind:
+		pickle.dump(data, open(file + '.p', 'wb'))
+
 
 
 def getRVActivityByDay(article: str, lan: str, day: str) -> dict:
@@ -242,8 +247,35 @@ def articleActivityAfterPost():
 
 
 def getRawData():
-    pass
+    df_process_analysis = pd.read_csv('process_analysis.csv')
+    for post_id in range(0, 4000):
+    	df_article_group = df_process_analysis.loc(df_process_analysis['post'] == post_id)
+    	if not ArticleFilter(df_article_group):
+    		continue
+    	
+    	for row in df_article_group:
+    		start_day = dt.datetime.strptime('%Y-%M-%d', row['First edit time'][:10])
+    		
+    		post_day = dt.datetime.strptime('%Y %B %d', row['year'] + row['time']) if int(
+	            row['time_from_post']) < 0 else start_day
+	            
+	        end_day = post_day + dt.timedelta(days=30)
+	        
+    		rv_list = getRawRVData(row['article'], old=start_day, new=end_day)
+    		
+    		saveData(rv_list, file=row['atricle'] + 'revisions', kind=['csv', 'pickle'])
+    		
 
 
-def articleFilter():
-    pass
+def articleFilter(df_articles):
+	if df_articles.shape[0] < 1:
+		return False
+		
+    for row in df_articles:
+    	if row['RD'] == 'False':
+    		return False
+    	
+    	if row['time_from_post'] < 0 and -8 < row['time_from_post']:
+    		return True
+    	
+    return False
