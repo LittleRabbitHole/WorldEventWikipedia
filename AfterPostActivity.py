@@ -239,3 +239,11 @@ def articleActivityAfterPost():
                 str(abs(time_delta)) if time_delta > 0 else 'D0'
             for key in activity.keys():
                 data_field[key][time_key] = activity[key]
+
+
+def getRawData():
+    pass
+
+
+def articleFilter():
+    pass
