@@ -31,6 +31,8 @@ Temporary Items
 __pycache__/
 report draft/
 archive data/
+data/
+logs/
 
 # Data to ignore
 plots/

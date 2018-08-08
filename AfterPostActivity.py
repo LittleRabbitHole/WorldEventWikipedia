@@ -36,7 +36,7 @@ import logging
 import ArticleFilter as utl
 
 
-logging.basicConfig(filename='logs/example.log', level=logging.WARNING)
+logging.basicConfig(filename='logs/rawRVFetching.log', level=logging.INFO)
 
 
 # check if the current row (pd.Series) represents a recent death event.
@@ -57,14 +57,46 @@ def getReturnedJSON(url: str, continue_pointer=None):
 #  kind -> str ('csv' or 'pickle') specify what kind of file type to be stored in
 # TODO
 def saveData(data: list, file, addition=False, article=None, kind=['csv']):
-	if 'csv' in kind:
-		for item in data:
-			del item['tag']
-		with open(file + '.csv', 'w') as csv_file:
-			pass
-	
-	if 'pickle'	in kind:
-		pickle.dump(data, open(file + '.p', 'wb'))
+    if 'csv' in kind:
+        print(data[0])
+        with open(file + '.csv', 'w') as csv_file:
+            writer = csv.DictWriter(csv_file, fieldnames=["revid","parentid","minor","user","timestamp","size","comment","parsedcomment","tags","anon"])
+            writer.writeheader()
+            for item in data:
+                writer.writerow(item)
+
+    if 'pickle' in kind:
+        pickle.dump(data, open(file + '.p', 'wb'))
+
+
+def getRVRawData(article: str, lan:str, old: dt.datetime, new: dt.datetime):
+    end = old.isoformat()# + 'T00:00:01'
+    start = new.isoformat()# + 'T23:59:59'
+    lan = 'zh' if lan == 'cn' else lan
+    url = 'https://' + lan + ".wikipedia.org/w/api.php?action=query&prop=revisions&titles=" + article + "&rvprop=ids%7Ctags%7Cflags%7Ctimestamp%7Cuser%7Csize%7Cparsedcomment%7Ccomment&rvend=" + end + "&rvstart=" + start + "&rvlimit=500&format=json&formatversion=2"
+    logging.info(url)
+    rv_list = []
+    continue_flag = True
+    continue_pointer = None
+
+    while continue_flag:
+        response = getReturnedJSON(url, continue_pointer)
+        if 'continue' not in response.keys():
+            continue_flag = False
+        else:
+            continue_flag = True
+            continue_pointer = '&rvcontinue=' + response['continue']['rvcontinue']
+            logging.info(continue_pointer)
+
+        try:
+            rv_list += response['query']['pages'][0]['revisions']
+            logging.info(len(rv_list))
+        except KeyError as err:
+            logging.error(err)
+            logging.info(response)
+            return rv_list
+    
+    return rv_list
 
 
 
@@ -107,8 +139,8 @@ def getRVActivityByTimePeriod(article: str, lan: str, start: str, end: str) -> d
             logging.info(response)
             return result
 
-    #edits
-    result['edits'] = len(rv_list) 
+    # edits
+    result['edits'] = len(rv_list)
 
     rv_oldest = rv_list[-1]
     rv_latest = rv_list[0]
@@ -120,41 +152,42 @@ def getRVActivityByTimePeriod(article: str, lan: str, start: str, end: str) -> d
     rv_base_size = getReturnedJSON(rv_base_size_url)[
         'query']['pages'][0]['revisions'][0]['size']
 
-    #reference + unique reference
-    result['reference'], result['unique reference'] = rvReferenceHandling(article, rv_oldest['revid'], rv_latest['revid'])
+    # reference + unique reference
+    result['reference'], result['unique reference'] = rvReferenceHandling(
+        article, rv_oldest['revid'], rv_latest['revid'])
 
     for rv in reversed(rv_list):
-        #content changes
+        # content changes
         size_delta = rv['size'] - rv_base_size
         if size_delta > 0:
             result['content_add'] += size_delta
         else:
             result['content_del'] += abs(size_delta)
-        
-        #editor work + editors
+
+        # editor work + editors
         if rv['user'] in editor_list.keys():
             editor_list[rv['user']]['edits'] += 1
             editor_list[rv['user']]['changes'] += abs(size_delta)
         else:
             editor_list[rv['user']]['edits'] = 1
             editor_list[rv['user']]['changes'] = abs(size_delta)
-        
-        #minor
+
+        # minor
         if rv['minor']:
             result['minor'] += 1
-        
-        #anonimous
+
+        # anonimous
         if 'anon' in rv.keys():
             result['anon'] += 1
-        
-        #section
+
+        # section
         if '→' in rv['prasedcomment']:
             result['section'] += 1
-        
-        #automatic summary
+
+        # automatic summary
         if '←' in rv['prasedcomment']:
             result['automatic summary'] += 1
-    
+
     result['editors'] = len(editor_list.keys())
     result['editor_work'] = editor_list
 
@@ -175,7 +208,7 @@ def getRefNum(content: str) -> int:
 def rvReferenceHandling(article: str, rv_oldest_id: int, rv_latest_id: int) -> (int, int):
     content_old = getRVContent(article, rv_oldest_id)
     content_new = getRVContent(article, rv_latest_id)
-    
+
     uref_delta = getUniqueRefNum(content_new) - getUniqueRefNum(content_old)
     ref_delta = getRefNum(content_new) - getRefNum(content_old)
 
@@ -248,34 +281,38 @@ def articleActivityAfterPost():
 
 def getRawData():
     df_process_analysis = pd.read_csv('process_analysis.csv')
-    for post_id in range(0, 4000):
-    	df_article_group = df_process_analysis.loc(df_process_analysis['post'] == post_id)
-    	if not ArticleFilter(df_article_group):
-    		continue
-    	
-    	for row in df_article_group:
-    		start_day = dt.datetime.strptime('%Y-%M-%d', row['First edit time'][:10])
-    		
-    		post_day = dt.datetime.strptime('%Y %B %d', row['year'] + row['time']) if int(
-	            row['time_from_post']) < 0 else start_day
-	            
-	        end_day = post_day + dt.timedelta(days=30)
-	        
-    		rv_list = getRawRVData(row['article'], old=start_day, new=end_day)
-    		
-    		saveData(rv_list, file=row['atricle'] + 'revisions', kind=['csv', 'pickle'])
-    		
+    for post_id in range(0, 3500):
+        df_article_group = df_process_analysis.loc[lambda df: df['post_id'] == post_id]
+        if not articleFilter(df_article_group):
+            continue
+        logging.info('post_id = ' + str(post_id))
+        for idx, row in df_article_group.iterrows():
+            start_day = dt.datetime.strptime(row['First edit time'][:10], '%Y-%m-%d')
+
+            post_day = dt.datetime.strptime(str(row['year']) + " " + row['time'], '%Y %B %d') if int(row['time_from_post']) < 0 else start_day
+
+            end_day = post_day + dt.timedelta(days=31)
+
+            rv_list = getRVRawData(row['article'], row['language'], old=start_day, new=end_day)
+            print(len(rv_list))
+
+            saveData(rv_list, file='data/' + row['article'] + '_revisions', kind=['csv', 'pickle'])
 
 
 def articleFilter(df_articles):
-	if df_articles.shape[0] < 1:
-		return False
-		
-    for row in df_articles:
-    	if row['RD'] == 'False':
-    		return False
-    	
-    	if row['time_from_post'] < 0 and -8 < row['time_from_post']:
-    		return True
-    	
-    return False
+    if df_articles.shape[0] < 1:
+        return False
+
+    # print(df_articles.dtypes)
+    for idx, row in df_articles.iterrows():
+        # print(type(row['RD']))
+        if row['RD']:
+            return False
+
+        if row['time_from_post'] < 0 and -8 < row['time_from_post']:
+            return True
+
+        return False
+
+
+getRawData()
