@@ -36,7 +36,7 @@ import logging
 import ArticleFilter as utl
 
 
-logging.basicConfig(filename='logs/rawRVFetching.log', level=logging.INFO)
+logging.basicConfig(filename='logs/example.log', level=logging.INFO)
 
 
 # check if the current row (pd.Series) represents a recent death event.
@@ -57,22 +57,31 @@ def getReturnedJSON(url: str, continue_pointer=None):
 #  kind -> str ('csv' or 'pickle') specify what kind of file type to be stored in
 # TODO
 def saveData(data: list, file, addition=False, article=None, kind=['csv']):
+    if 'pickle' in kind:
+        pickle.dump(data, open('data/pickle/' + file + '.p', 'wb'))
+
+    fieldnames = ["revid","parentid","minor","user","timestamp","size","comment","parsedcomment","suppressed","anon","commenthidden","tags"]
     if 'csv' in kind:
-        print(data[0])
-        with open(file + '.csv', 'w') as csv_file:
-            writer = csv.DictWriter(csv_file, fieldnames=["revid","parentid","minor","user","timestamp","size","comment","parsedcomment","tags","anon"])
+        if len(data) == 0:
+            logging.warning(file)
+            return
+        with open('data/csv/' + file + '.csv', 'w') as csv_file:
+            writer = csv.DictWriter(csv_file, fieldnames)
             writer.writeheader()
             for item in data:
+                diff = set(item.keys()) - set(fieldnames)
+                if not len(diff) == 0:
+                    for key in list(diff):
+                        item.pop(key)
                 writer.writerow(item)
-
-    if 'pickle' in kind:
-        pickle.dump(data, open(file + '.p', 'wb'))
 
 
 def getRVRawData(article: str, lan:str, old: dt.datetime, new: dt.datetime):
     end = old.isoformat()# + 'T00:00:01'
     start = new.isoformat()# + 'T23:59:59'
     lan = 'zh' if lan == 'cn' else lan
+    article = article.replace(" ", '%20')
+    article = article.split('#')[0] if '#' in article else article
     url = 'https://' + lan + ".wikipedia.org/w/api.php?action=query&prop=revisions&titles=" + article + "&rvprop=ids%7Ctags%7Cflags%7Ctimestamp%7Cuser%7Csize%7Cparsedcomment%7Ccomment&rvend=" + end + "&rvstart=" + start + "&rvlimit=500&format=json&formatversion=2"
     logging.info(url)
     rv_list = []
@@ -87,6 +96,12 @@ def getRVRawData(article: str, lan:str, old: dt.datetime, new: dt.datetime):
             continue_flag = True
             continue_pointer = '&rvcontinue=' + response['continue']['rvcontinue']
             logging.info(continue_pointer)
+
+        if 'normalized' in response['query'].keys():
+            continue_flag = True
+            article = response['query']['normalized'][0]['to']
+            url = 'https://' + lan + ".wikipedia.org/w/api.php?action=query&prop=revisions&titles=" + article + "&rvprop=ids%7Ctags%7Cflags%7Ctimestamp%7Cuser%7Csize%7Cparsedcomment%7Ccomment&rvend=" + end + "&rvstart=" + start + "&rvlimit=500&format=json&formatversion=2"
+            continue
 
         try:
             rv_list += response['query']['pages'][0]['revisions']
@@ -283,7 +298,7 @@ def getRawData():
     df_process_analysis = pd.read_csv('process_analysis.csv')
     for post_id in range(0, 3500):
         df_article_group = df_process_analysis.loc[lambda df: df['post_id'] == post_id]
-        if not articleFilter(df_article_group):
+        if not articleGroupFilter(df_article_group):
             continue
         logging.info('post_id = ' + str(post_id))
         for idx, row in df_article_group.iterrows():
@@ -294,25 +309,92 @@ def getRawData():
             end_day = post_day + dt.timedelta(days=31)
 
             rv_list = getRVRawData(row['article'], row['language'], old=start_day, new=end_day)
-            print(len(rv_list))
+            # print(len(rv_list))
 
-            saveData(rv_list, file='data/' + row['article'] + '_revisions', kind=['csv', 'pickle'])
+            saveData(rv_list, file=str(row['post_id']) + '_' + row['language'] + '_revisions', kind=['csv', 'pickle'])
 
 
-def articleFilter(df_articles):
+def getRawDataISO():
+    df_process_analysis = pd.read_csv('process_analysis.csv')
+    # for post_id in range(0, 3500):
+    #     df_article_group = df_process_analysis.loc[lambda df: df['post_id'] == post_id]
+    #     if not articleFilter(df_article_group):
+    #         continue
+    #     logging.info('post_id = ' + str(post_id))
+    for idx, row in df_process_analysis.iterrows():
+        if not articleFilter(row):
+            continue
+
+        start_day = dt.datetime.strptime(row['First edit time'][:10], '%Y-%m-%d')
+
+        post_day = dt.datetime.strptime(str(row['year']) + " " + row['time'], '%Y %B %d') if int(row['time_from_post']) < 0 else start_day
+
+        end_day = post_day + dt.timedelta(days=31)
+
+        rv_list = getRVRawData(row['article'], row['language'], old=start_day, new=end_day)
+        # print(len(rv_list))
+
+        saveData(rv_list, file=str(row['post_id']) + '_' + row['language'] + '_revisions', kind=['csv', 'pickle'])
+
+
+
+def articleGroupFilter(df_articles: pd.DataFrame):
     if df_articles.shape[0] < 1:
         return False
 
     # print(df_articles.dtypes)
     for idx, row in df_articles.iterrows():
-        # print(type(row['RD']))
-        if row['RD']:
-            return False
-
-        if row['time_from_post'] < 0 and -8 < row['time_from_post']:
+        if articleFilter(row):
             return True
+        # print(type(row['RD']))
+        # if row['RD']:
+        #     return False
 
+        # if row['time_from_post'] < 7 and row['time_from_post'] > -7:
+        #     print(str(row['post_id']) + ' ' + row['language'] + ' ' + str(row['time_from_post']))
+        #     return True
+
+    return False
+
+
+def articleFilter(article):
+    if article['RD']:
         return False
+    
+    if article['time_from_post'] in range(-6, 7):
+        return True
+    
+    return False
 
 
-getRawData()
+getRawDataISO()
+
+# df = pd.read_csv('process_analysis.csv')
+# counter = 0
+# for idx,row in df.iterrows(): #681+366+411
+#     if row['language'] in ['en','es']:
+#         continue
+
+#     if row['RD']:
+#         continue
+    
+#     if row['time_from_post'] in range(-6, 7):
+#         print(row['time_from_post'])
+#         counter += 1 
+
+# for post_id in range(0, 3500): #1172
+#         df_article_group = df.loc[lambda df: df['post_id'] == post_id]
+#         if articleFilter(df_article_group):
+#             counter['total'] += df_article_group.shape[0]
+#             logging.info(str(post_id) + " True, added articles: " + str(df_article_group.shape[0]) + " Total articles: " + str(counter))
+#             for idx, row in df_article_group.iterrows():
+#                 counter[row['language']] += 1
+#                 logging.info(str(post_id) + " language: " + row['language'])
+#         else:
+#             logging.info(str(post_id) + " False, discard articles: " + str(df_article_group.shape[0]))
+#             for idx, row in df_article_group.iterrows():
+#                 # counter[row['language']] += 1
+#                 logging.info(str(post_id) + " language: " + row['language'] + " " + str(row['time_from_post']))
+            
+
+# print(counter)

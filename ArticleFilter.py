@@ -119,7 +119,7 @@ def returnJsonCheck(response) -> dict:
     except:
         print("ERROR")
         print(response)
-        print(response.headers)
+        print(response.text)
         sys.exit("json error")
     
 # check if a page fits our defined params => 
