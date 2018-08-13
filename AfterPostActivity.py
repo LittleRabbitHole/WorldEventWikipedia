@@ -367,7 +367,7 @@ def articleFilter(article):
     return False
 
 
-getRawDataISO()
+# getRawDataISO()
 
 # df = pd.read_csv('process_analysis.csv')
 # counter = 0

@@ -197,10 +197,11 @@ def decipherITNTemplate(time: str, title: str, content: str) -> dict:
     return result
 
 
-def writeRowsCSV(rows: list, fieldnames = ["pageid", "title"], filenames = 'itns.csv'):
+def writeRowsCSV(rows: list, fieldnames = ["pageid", "title"], filenames = 'itns.csv', header=False):
     with open(filenames, 'a') as csv_file:
         writer = csv.DictWriter(csv_file, fieldnames = fieldnames)
-        # writer.writeheader()
+        if header:
+            writer.writeheader()
         for row in rows:
             writer.writerow(row)
 
