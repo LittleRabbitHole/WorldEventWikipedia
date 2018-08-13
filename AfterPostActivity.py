@@ -369,7 +369,7 @@ def articleFilter(article):
 
 # getRawDataISO()
 
-# df = pd.read_csv('process_analysis.csv')
+df = pd.read_csv('process_analysis.csv')
 # counter = 0
 # for idx,row in df.iterrows(): #681+366+411
 #     if row['language'] in ['en','es']:
@@ -382,19 +382,19 @@ def articleFilter(article):
 #         print(row['time_from_post'])
 #         counter += 1 
 
-# for post_id in range(0, 3500): #1172
-#         df_article_group = df.loc[lambda df: df['post_id'] == post_id]
-#         if articleFilter(df_article_group):
-#             counter['total'] += df_article_group.shape[0]
-#             logging.info(str(post_id) + " True, added articles: " + str(df_article_group.shape[0]) + " Total articles: " + str(counter))
-#             for idx, row in df_article_group.iterrows():
-#                 counter[row['language']] += 1
-#                 logging.info(str(post_id) + " language: " + row['language'])
-#         else:
-#             logging.info(str(post_id) + " False, discard articles: " + str(df_article_group.shape[0]))
-#             for idx, row in df_article_group.iterrows():
-#                 # counter[row['language']] += 1
-#                 logging.info(str(post_id) + " language: " + row['language'] + " " + str(row['time_from_post']))
+iso_list = []
+exd_list = []
+
+for post_id in range(0, 3500): #1172
+    df_article_group = df.loc[lambda df: df['post_id'] == post_id]
+    if articleGroupFilter(df_article_group):
+        for idx, row in df_article_group.iterrows():
+            exd_list.append(row.to_dict())
+            if articleFilter(row):
+                iso_list.append(row.to_dict())
+
+utl.writeRowsCSV(iso_list, fieldnames=iso_list[0].keys(), filenames='iso.csv', header=True)            
+utl.writeRowsCSV(exd_list, fieldnames=exd_list[0].keys(), filenames='exd.csv', header=True)            
             
 
 # print(counter)
