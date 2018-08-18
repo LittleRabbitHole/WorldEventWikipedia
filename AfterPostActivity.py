@@ -343,18 +343,21 @@ def articleGroupFilter(df_articles: pd.DataFrame):
         return False
 
     # print(df_articles.dtypes)
+    flag = False
+    time_list = []
     for idx, row in df_articles.iterrows():
-        if articleFilter(row):
-            return True
-        # print(type(row['RD']))
-        # if row['RD']:
-        #     return False
+        if row['RD']:
+            return False
 
-        # if row['time_from_post'] < 7 and row['time_from_post'] > -7:
-        #     print(str(row['post_id']) + ' ' + row['language'] + ' ' + str(row['time_from_post']))
-        #     return True
+        flag = flag or articleFilter(row)
+        time_list.append(row['time_from_post'])
 
-    return False
+    if min(time_list) < -6:
+        return False
+    elif flag:
+        return True
+    else:
+        return False
 
 
 def articleFilter(article):
@@ -380,21 +383,7 @@ df = pd.read_csv('process_analysis.csv')
     
 #     if row['time_from_post'] in range(-6, 7):
 #         print(row['time_from_post'])
-#         counter += 1 
-
-iso_list = []
-exd_list = []
-
-for post_id in range(0, 3500): #1172
-    df_article_group = df.loc[lambda df: df['post_id'] == post_id]
-    if articleGroupFilter(df_article_group):
-        for idx, row in df_article_group.iterrows():
-            exd_list.append(row.to_dict())
-            if articleFilter(row):
-                iso_list.append(row.to_dict())
-
-utl.writeRowsCSV(iso_list, fieldnames=iso_list[0].keys(), filenames='iso.csv', header=True)            
-utl.writeRowsCSV(exd_list, fieldnames=exd_list[0].keys(), filenames='exd.csv', header=True)            
+#         counter += 1            
             
 
 # print(counter)
