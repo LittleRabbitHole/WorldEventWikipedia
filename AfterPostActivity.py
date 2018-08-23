@@ -372,7 +372,7 @@ def articleFilter(article):
 
 # getRawDataISO()
 
-df = pd.read_csv('process_analysis.csv')
+# df = pd.read_csv('process_analysis.csv')
 # counter = 0
 # for idx,row in df.iterrows(): #681+366+411
 #     if row['language'] in ['en','es']:
