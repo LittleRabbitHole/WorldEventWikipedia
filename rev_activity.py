@@ -120,8 +120,60 @@ def addMissingData():
     return df_rev_activity_full
 
         
+def selectedTimePoint() -> pd.DataFrame:
+    pool_fields = ['user', 'timestamp', 'references', 'comment', 'tags', 'external_links', 'revid', 'language', 'article_id', 'size', 'post_time', 'category', 'topic', 'post_id', 'wiki_links']
+    df_rev_activity = pd.read_csv('data/rev_pool.csv', usecols=pool_fields)
+    df_selected_post_id = pd.read_csv('data/selected.csv')
+    lang_list = ['en', 'es', 'cn']
+
+    post_id_list = df_selected_post_id['PostID'].tolist()
+
+    reduced_rev_list = []
+
+    for post_id in post_id_list:
+        print(post_id)
+        df_post_revision = df_rev_activity.loc[lambda df: df['post_id'] == post_id]
+        for lang in ['en', 'cn', 'es']:
+            df_lang_revision = df_post_revision.loc[lambda df:df['language'] == lang]
+            if df_lang_revision.shape[0] < 1:
+                continue
+            
+            df_lang_revision = df_lang_revision.sort_values(by=['timestamp'])
+            reduced_rev_list.append(df_lang_revision.iloc[0].to_dict())
+            reduced_rev_list.append(df_lang_revision.iloc[-1].to_dict())
+            
+            creation_time = dt.datetime.strptime(df_lang_revision.iloc[0]['timestamp'][:19], '%Y-%m-%dT%H:%M:%S') #2011-03-27T04:01:10Z
+            first_24hour = creation_time + dt.timedelta(days=1)
+            first_week = creation_time + dt.timedelta(days=7)
+
+            week_flag = False
+            candidate_day = df_lang_revision.iloc[0].to_dict()
+            candidate_week = creation_time
+
+            for idx, row in df_lang_revision.iterrows():
+                temp = dt.datetime.strptime(row['timestamp'][:19], '%Y-%m-%dT%H:%M:%S')
+                if not week_flag and temp < first_24hour:
+                    candidate_day = row.to_dict()
+                    candidate_week = row.to_dict()
+                elif not week_flag and temp > first_24hour and temp < first_week:
+                    week_flag = True
+                    candidate_week = row.to_dict()
+                elif not week_flag and temp > first_week:
+                    break
+                elif week_flag and temp < first_week:
+                    candidate_week = row.to_dict()
+                elif week_flag and temp > first_week:
+                    break
+            
+            reduced_rev_list.append(candidate_day)
+            reduced_rev_list.append(candidate_week)
+    
+    result = pd.DataFrame(reduced_rev_list)
+    return result.sort_values(by=['post_id', 'language', 'timestamp'])
+                    
 
 
 # checking() 
 # screeningByTime_Del().to_csv('data/rev_pool_reduced_list.csv')
-addMissingData().to_csv('data/rev_pool.csv')
+# addMissingData().to_csv('data/rev_pool.csv')
+selectedTimePoint().to_csv('data/rev_pool_selected_timestamp.csv', columns=['user', 'timestamp', 'references', 'comment', 'tags', 'external_links', 'revid', 'language', 'article_id', 'size', 'post_time', 'category', 'topic', 'post_id', 'wiki_links'])
