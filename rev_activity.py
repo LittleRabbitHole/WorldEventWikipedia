@@ -7,7 +7,7 @@ import AfterPostActivity as apa
 import ArticleFilter as utl
 
 def screeningByTime_Del() -> pd.DataFrame:
-    df_rev_activity = pd.read_csv('data/article_pool_rev.csv')
+    df_rev_activity = pd.read_csv('data/rev_pool.csv')
     df_process_analysis = pd.read_csv('/Users/keyangzheng/Google Drive/WorldEvents&Wikipedia/data/process_data_with_topic.csv')
 
     for post_id in range(0,3500):
@@ -39,15 +39,17 @@ def timePeriodSelection(row):
 
 
 def checking():
-    rev_activity_list = pd.read_csv('data/rev_pool_reduced_list.csv')
+    rev_activity_list = pd.read_csv('data/rev_pool_selected_timestamp.csv')
     counter = 0
     for idx,row in rev_activity_list.iterrows():
         rev_time = dt.datetime.strptime(row['timestamp'][:10], '%Y-%m-%d')
         post_time = dt.datetime.strptime(row['post_time'][:10], '%Y-%m-%d')
 
         time_delta = rev_time - post_time
-        if time_delta.days < -6:
+        if abs(time_delta.days) > 31:
             print(row)
+            counter += 1
+    print(counter)
 
 
 def addMissingData():
@@ -122,7 +124,7 @@ def addMissingData():
         
 def selectedTimePoint() -> pd.DataFrame:
     pool_fields = ['user', 'timestamp', 'references', 'comment', 'tags', 'external_links', 'revid', 'language', 'article_id', 'size', 'post_time', 'category', 'topic', 'post_id', 'wiki_links']
-    df_rev_activity = pd.read_csv('data/rev_pool.csv', usecols=pool_fields)
+    df_rev_activity = pd.read_csv('data/rev_pool_reduced_list.csv', usecols=pool_fields)
     df_selected_post_id = pd.read_csv('data/selected.csv')
     lang_list = ['en', 'es', 'cn']
 
@@ -173,7 +175,7 @@ def selectedTimePoint() -> pd.DataFrame:
                     
 
 
-# checking() 
+checking() 
 # screeningByTime_Del().to_csv('data/rev_pool_reduced_list.csv')
 # addMissingData().to_csv('data/rev_pool.csv')
-selectedTimePoint().to_csv('data/rev_pool_selected_timestamp.csv', columns=['user', 'timestamp', 'references', 'comment', 'tags', 'external_links', 'revid', 'language', 'article_id', 'size', 'post_time', 'category', 'topic', 'post_id', 'wiki_links'])
+# selectedTimePoint().to_csv('data/rev_pool_selected_timestamp.csv', columns=['user', 'timestamp', 'references', 'comment', 'tags', 'external_links', 'revid', 'language', 'article_id', 'size', 'post_time', 'category', 'topic', 'post_id', 'wiki_links'])
