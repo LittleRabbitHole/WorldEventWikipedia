@@ -3,10 +3,16 @@
 """
 Created on Tue Jul 31 21:55:39 2018
 
+this code is to 
+1. merge data with topics
+2. place entity tags
+3, merge with place entity tags
+
 @author: Ang
 """
 import pandas as pd
 import numpy as np
+from geotext import GeoText
 
 def reTopics(row):
     lst = list(row[['0', '1', '2', '3', '4', '5', '6']])
@@ -18,7 +24,7 @@ def reTopics(row):
     
 
 def articleTopics():
-    data = pd.read_table("/Users/Ang/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEvents&Wikipedia/data/results_v1.csv", 
+    data = pd.read_table("/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEvents&Wikipedia/data/results_v1.csv", 
                              sep=',', error_bad_lines = False)    
     #data.columns.values
     article_set1 = data[['year','time','article', '0', '1', '2', '3', '4', '5', '6']]
@@ -45,15 +51,15 @@ def articleTopics():
 
 def allArticles():
     #article alignment
-    article_data = pd.read_table("/Users/Ang/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEvents&Wikipedia/data/posted_itn_v3.csv", 
+    article_data = pd.read_table("/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEvents&Wikipedia/data/posted_itn_v3.csv", 
                              sep=',', error_bad_lines = False)
-    article_data_zh = article_data[['zh_title', 'article']]
+    article_data_zh = article_data[['zh_title', 'article', 'header']]
     article_data_zh=article_data_zh.rename(columns = {'zh_title':'title'})
     
-    article_data_es = article_data[['es_title', 'article']]
+    article_data_es = article_data[['es_title', 'article', 'header']]
     article_data_es=article_data_es.rename(columns = {'es_title':'title'})
     
-    article_data_en = article_data[['article']]
+    article_data_en = article_data[['article', 'header']]
     article_data_en['title'] = article_data[['article']]
     
     article_data = pd.concat([article_data_en, article_data_es, article_data_zh], ignore_index=True)
@@ -68,10 +74,27 @@ def allArticles():
     article_data['key'] = article_data_lsts                              
     return article_data
 
+#place entity tags
+def reCities(row):
+    text = row['header'] + " " + row['article']
+    text = text.translate({ord(c): " " for c in "!@#$%^&*()[]{};:,./<>?\|`–~-=_+"})
+    places = GeoText(text)
+    lst_cities = list(places.cities) 
+    #lst_contries = list(places.country_mentions) 
+    return ":".join(lst_cities)
+
+def reContries(row):
+    text = row['header'] + " " + row['article']
+    text = text.translate({ord(c): " " for c in "!@#$%^&*()[]{};:,./<>?\|`–~-=_+"})
+    places = GeoText(text)
+    #lst_cities = list(places.cities) 
+    lst_contries = list(places.country_mentions) 
+    return ":".join(lst_contries)
+
 
 def prossData():
     ##process data              
-    process_data = pd.read_table("/Users/Ang/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEvents&Wikipedia/data/process_analysis.csv", 
+    process_data = pd.read_table("/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEvents&Wikipedia/data/process_analysis.csv", 
                              sep=',', error_bad_lines = False)
     process_data['article'] = process_data['article'].str.replace(r'<!--.+?-->', '', case=False)
     process_data['article'] = process_data['article'].str.replace(r'!--.+?-->', '', case=False)
@@ -82,14 +105,23 @@ def prossData():
     process_data['key'] = process_data_lsts                              
     return process_data
 
+
+    
 #merge article with topics
 article_data = allArticles()
 article_data = article_data.drop_duplicates()
 #article_data.to_csv("/Users/Ang/Desktop/article_data.csv")
 
+#for places
+article_data['city'] = article_data.apply(reCities, axis = 1) 
+article_data['contry'] = article_data.apply(reContries, axis = 1) 
+
+
+#for topics
 articleTopics = articleTopics()
 articleTopics = articleTopics.drop_duplicates()
 
+#read process data
 process_data = prossData()#key as key
 
 
@@ -118,34 +150,55 @@ process_data_topic = process_data_topic[['(Semi-)automated edits', 'Assessment',
        'References', 'Reverted edits', 'Sections', 'Templates',
        'Total edits', 'Unique references', 'Words', 'article', 'category',
        'language', 'post_id', 'time', 'time_from_post', 'time_of_creation',
-       'year', 'key',  'title', 'article_key',
-       'itn_posted_year', 'itn_posted_time', 'topic']]
+       'year', 'key',  'title', 'header', 'article_key',
+       'itn_posted_year', 'itn_posted_time', 'topic', 'city', 'contry']]
 
 process_data_topic = process_data_topic.drop_duplicates()
 
 process_data_topic = process_data_topic.loc[process_data_topic['RD']==False]
 
-process_data_topic.to_csv("/Users/Ang/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEvents&Wikipedia/data/process_data_with_topic.csv")
-                 
+process_data_topic.to_csv("/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEvents&Wikipedia/data/process_data_with_topic_location.csv")
 
-###place
-from geotext import GeoText
+#get the location               
+Location_data = process_data_topic[[ 'post_id', 'language', 'title', 'header', 'article', 'city', 'contry']]
 
-def rePlace(row):
-    text = row['header'] + " " + row['article']
-    text = text.translate({ord(c): " " for c in "!@#$%^&*()[]{};:,./<>?\|`–~-=_+"})
-    places = GeoText(text)
-    lst = list(places.cities) + list(places.country_mentions) 
-    return ":".join(lst)
+Location_data = Location_data.drop_duplicates()
+
+def genLink(row):
+    title = row['title']
+    title_link = "https://en.wikipedia.org/wiki/"+title
+    return title_link
     
-article_data = pd.read_table("/Users/Ang/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEvents&Wikipedia/data/posted_itn_v3.csv", 
-                             sep=',', error_bad_lines = False)
+def countryDict():
+    contry_code = pd.read_csv("/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEvents&Wikipedia/data/countryCodes.csv",encoding = "ISO-8859-1")
+    contrycode_dict = pd.Series(contry_code['countryNames'].values, index=contry_code['contry']).to_dict()
+    contrycode_dict['NA'] = "Namibia"
+    contrycode_dict['EC'] = "Ecuador"
+    return contrycode_dict
 
-article_data['places'] = article_data.apply(rePlace, axis = 1) 
-article_data.to_csv("/Users/Ang/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEvents&Wikipedia/data/posted_itn_with_loc.csv")
+contrycode_dict = countryDict()
+def contryName(row):
+    contry_code = row['contry']
+    contry_lst = []
+    
+    if contry_code != "":
+        contry_code_lst = contry_code.split(':')        
+        
+        for code in contry_code_lst:
+            if code != "":
+                contry_name = contrycode_dict[code]
+                contry_lst.append(contry_name)
+    
+    contry_names = ":".join(contry_lst)
+    return contry_names
 
 
-article_data['places'].describe()
+Location_data["article_link"] = Location_data.apply(genLink, axis = 1) 
+Location_data["country_name"] = Location_data.apply(contryName, axis = 1) 
+
+
+Location_data.to_csv("/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEvents&Wikipedia/data/Location_data.csv")
+
 
 
 
