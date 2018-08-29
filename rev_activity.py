@@ -39,7 +39,7 @@ def timePeriodSelection(row):
 
 
 def checking():
-    rev_activity_list = pd.read_csv('data/rev_pool_selected_timestamp.csv')
+    rev_activity_list = pd.read_csv('data/rev_pool_selected_timestamp_nd.csv')
     counter = 0
     for idx,row in rev_activity_list.iterrows():
         rev_time = dt.datetime.strptime(row['timestamp'][:10], '%Y-%m-%d')
@@ -124,7 +124,7 @@ def addMissingData():
         
 def selectedTimePoint() -> pd.DataFrame:
     pool_fields = ['user', 'timestamp', 'references', 'comment', 'tags', 'external_links', 'revid', 'language', 'article_id', 'size', 'post_time', 'category', 'topic', 'post_id', 'wiki_links']
-    df_rev_activity = pd.read_csv('data/rev_pool_reduced_list.csv', usecols=pool_fields)
+    df_rev_activity = pd.read_csv('data/rev_pool_nd.csv', usecols=pool_fields)
     df_selected_post_id = pd.read_csv('data/selected.csv')
     lang_list = ['en', 'es', 'cn']
 
@@ -175,7 +175,7 @@ def selectedTimePoint() -> pd.DataFrame:
                     
 
 
-checking() 
+# checking() 
 # screeningByTime_Del().to_csv('data/rev_pool_reduced_list.csv')
 # addMissingData().to_csv('data/rev_pool.csv')
-# selectedTimePoint().to_csv('data/rev_pool_selected_timestamp.csv', columns=['user', 'timestamp', 'references', 'comment', 'tags', 'external_links', 'revid', 'language', 'article_id', 'size', 'post_time', 'category', 'topic', 'post_id', 'wiki_links'])
+selectedTimePoint().to_csv('data/rev_pool_selected_timestamp_nd.csv', columns=['user', 'timestamp', 'references', 'comment', 'tags', 'external_links', 'revid', 'language', 'article_id', 'size', 'post_time', 'category', 'topic', 'post_id', 'wiki_links'])
