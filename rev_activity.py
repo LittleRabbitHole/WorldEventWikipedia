@@ -39,7 +39,7 @@ def timePeriodSelection(row):
 
 
 def checking():
-    rev_activity_list = pd.read_csv('data/rev_pool_selected_timestamp_nd.csv')
+    rev_activity_list = pd.read_csv('data/rev_pool_selected.csv')
     counter = 0
     for idx,row in rev_activity_list.iterrows():
         rev_time = dt.datetime.strptime(row['timestamp'][:10], '%Y-%m-%d')
@@ -124,11 +124,11 @@ def addMissingData():
         
 def selectedTimePoint() -> pd.DataFrame:
     pool_fields = ['user', 'timestamp', 'references', 'comment', 'tags', 'external_links', 'revid', 'language', 'article_id', 'size', 'post_time', 'category', 'topic', 'post_id', 'wiki_links']
-    df_rev_activity = pd.read_csv('data/rev_pool_nd.csv', usecols=pool_fields)
-    df_selected_post_id = pd.read_csv('data/selected.csv')
+    df_rev_activity = pd.read_csv('data/revisions-20180827.csv', usecols=pool_fields)
+    df_selected_post_id = pd.read_csv('data/selected_2lang.csv')
     lang_list = ['en', 'es', 'cn']
 
-    post_id_list = df_selected_post_id['PostID'].tolist()
+    post_id_list = df_selected_post_id['postID'].tolist()
 
     reduced_rev_list = []
 
@@ -140,6 +140,7 @@ def selectedTimePoint() -> pd.DataFrame:
             if df_lang_revision.shape[0] < 1:
                 continue
             
+            print(' ', lang)
             df_lang_revision = df_lang_revision.sort_values(by=['timestamp'])
             reduced_rev_list.append(df_lang_revision.iloc[0].to_dict())
             reduced_rev_list.append(df_lang_revision.iloc[-1].to_dict())
@@ -178,4 +179,4 @@ def selectedTimePoint() -> pd.DataFrame:
 # checking() 
 # screeningByTime_Del().to_csv('data/rev_pool_reduced_list.csv')
 # addMissingData().to_csv('data/rev_pool.csv')
-selectedTimePoint().to_csv('data/rev_pool_selected_timestamp_nd.csv', columns=['user', 'timestamp', 'references', 'comment', 'tags', 'external_links', 'revid', 'language', 'article_id', 'size', 'post_time', 'category', 'topic', 'post_id', 'wiki_links'])
+selectedTimePoint().to_csv('data/rev_pool_selected.csv', columns=['user', 'timestamp', 'revid', 'language', 'article_id', 'size', 'post_time', 'category', 'topic', 'post_id'])

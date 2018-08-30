@@ -36,7 +36,7 @@ import logging
 import ArticleFilter as utl
 
 
-logging.basicConfig(filename='logs/example.log', level=logging.INFO)
+# logging.basicConfig(filename='logs/example.log', level=logging.INFO)
 
 
 # check if the current row (pd.Series) represents a recent death event.

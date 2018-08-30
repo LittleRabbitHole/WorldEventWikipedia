@@ -69,7 +69,7 @@ def getQualityScore(dataset: str):
 
         revids = df_rev_dataset_lang['revid'].tolist()
         
-        for chunks in [revids[x:x+100] for x in range(0, len(revids), 100)]:
+        for chunks in [revids[x:x+4] for x in range(0, len(revids), 4)]:
             rev_quality = getRevisionQuality(revid_list=chunks, language=lang)
 
             for_store = []
@@ -79,5 +79,5 @@ def getQualityScore(dataset: str):
             utl.writeRowsCSV(for_store, fieldnames=['revid', 'quality', 'language'], filenames='data/rev_quality.csv')
 
 
-getQualityScore('data/rev_pool_selected_timestamp_nd.csv')
+getQualityScore('data/rev_pool_candidate.csv')
 
