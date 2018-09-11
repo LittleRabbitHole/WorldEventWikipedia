@@ -79,5 +79,5 @@ def getQualityScore(dataset: str):
             utl.writeRowsCSV(for_store, fieldnames=['revid', 'quality', 'language'], filenames='data/rev_quality.csv')
 
 
-getQualityScore('data/rev_pool_candidate.csv')
+# getQualityScore('data/rev_pool_candidate.csv')
 
