@@ -110,9 +110,6 @@ qual_data$loc_Spanish[which(qual_data$location=="Spanish")] <- 1
 
 
 
-
-
-
 #size over location
 hist(qual_data$o3_qualscore)
 
@@ -148,7 +145,21 @@ summary(lm(formula = o3_qualscore ~ o2_qualscore + topic_mandisaster + topic_nat
 summary(lm(formula = o4_qualscore ~ o3_qualscore + topic_mandisaster + topic_naturaldisaster + topic_science, 
            data = qual_data))
 
+###
+summary(lm(formula = o1_qualscore ~ as.factor(year), 
+           data = qual_data))
 
+summary(lm(formula = o2_qualscore ~ o1_qualscore + as.factor(year), 
+           data = qual_data))
+
+summary(lm(formula = o3_qualscore ~ o2_qualscore + as.factor(year), 
+           data = qual_data))
+
+summary(lm(formula = o4_qualscore ~ o3_qualscore + as.factor(year), 
+           data = qual_data))
+
+
+###
 summary(lm(formula = o1_qualscore ~ as.factor(language), 
            data = qual_data))
 
