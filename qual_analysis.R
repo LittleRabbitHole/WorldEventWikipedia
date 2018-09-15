@@ -65,7 +65,7 @@ qual_data$lan_es = 0
 qual_data$lan_es[which(qual_data$language=='es')] <- 1
 
 
-summary(lm(formula = o1_qualscore ~ as.factor(lan_cn) + as.factor(lan_es), 
+summary(glm(formula = o1_qualscore ~ as.factor(lan_cn) + as.factor(lan_es), family = gaussian(),
            data = qual_data))
 
 summary(lm(formula = o2_qualscore ~ o1_qualscore + as.factor(lan_cn) + as.factor(lan_es), 
@@ -160,7 +160,7 @@ summary(lm(formula = o4_qualscore ~ o3_qualscore + as.factor(year),
 
 
 ###
-summary(lm(formula = o1_qualscore ~ as.factor(language), 
+summary(glm(formula = o1_qualscore ~ as.factor(language), 
            data = qual_data))
 
 summary(lm(formula = o2_qualscore ~ o1_qualscore + as.factor(language), 
@@ -174,75 +174,26 @@ summary(lm(formula = o4_qualscore ~ o3_qualscore + as.factor(language),
 
 
 #across community over localtion
-summary(lm(formula = o1_qualscore ~ as.factor(language)*as.factor(location), 
+qual_data$location <- relevel(as.factor(qual_data$location) , ref = "Others")
+
+summary(glm(formula = o4_qualscore ~ o3_qualscore + as.factor(location)*as.factor(language), family = gaussian(),
            data = qual_data))
 
-summary(lm(formula = o2_qualscore ~ o1_qualscore + as.factor(language)*as.factor(location), 
-           data = qual_data))
-
-summary(lm(formula = o4_qualscore ~ o3_qualscore + as.factor(language)*as.factor(location), 
-           data = qual_data))
+summary(glm(formula = o4_qualscore ~ as.factor(language)*as.factor(location), family = gaussian(),
+            data = qual_data))
 
 ## across topics
-summary(lm(formula = o1_qualscore ~ as.factor(language)*as.factor(topic_simple), 
+
+
+summary(glm(formula = o4_qualscore ~ o3_qualscore+as.factor(language)*as.factor(topic_simple), family = gaussian(),
            data = qual_data))
 
-summary(lm(formula = o4_qualscore ~ o3_qualscore+as.factor(language)*as.factor(topic_simple), 
-           data = qual_data))
+summary(glm(formula = o4_qualscore ~ as.factor(language)*as.factor(topic_simple), family = gaussian(),
+            data = qual_data))
 
 
-# size of the topics
+## across time
 
+summary(glm(formula = o4_qualscore ~ o3_qualscore+as.factor(language)*as.factor(year), family = gaussian(),
+            data = qual_data))
 
-summary(lm(formula = log(o1_size+0.01) ~ topic_mandisaster + topic_naturaldisaster + topic_science, 
-           data = qual_data))
-
-summary(lm(formula = log(o2_size+0.01) ~ log(o1_size+0.01) + topic_mandisaster + topic_naturaldisaster + topic_science, 
-           data = qual_data))
-
-summary(lm(formula = log(o3_size+0.01) ~ log(o2_size+0.01) + topic_mandisaster + topic_naturaldisaster + topic_science, 
-           data = qual_data))
-
-summary(lm(formula = log(o4_size+0.01) ~ log(o3_size+0.01) + topic_mandisaster + topic_naturaldisaster + topic_science, 
-           data = qual_data))
-
-# size over communities
-
-summary(lm(formula = log(o1_size+0.01) ~ as.factor(language), 
-           data = qual_data))
-
-summary(lm(formula = log(o2_size+0.01) ~ log(o1_size+0.01) + as.factor(language), 
-           data = qual_data))
-
-summary(lm(formula = log(o3_size+0.01) ~ log(o2_size+0.01) + as.factor(language), 
-           data = qual_data))
-
-summary(lm(formula = log(o4_size+0.01) ~ log(o3_size+0.01) + as.factor(language), 
-           data = qual_data))
-#the most resent, three langage communities have article sizes are comparible
-
-
-
-#across community over localtion
-summary(lm(formula = log(o1_size+0.01) ~ as.factor(language)*as.factor(location), 
-           data = qual_data))
-
-summary(lm(formula = log(o2_size+0.01) ~ log(o1_size+0.01) + as.factor(language)*as.factor(location), 
-           data = qual_data))
-
-summary(lm(formula = log(o4_size+0.01) ~ log(o3_size+0.01) + as.factor(language)*as.factor(location), 
-           data = qual_data))
-
-
-## across topics
-summary(lm(formula = log(o1_size+0.01) ~ as.factor(language)*as.factor(topic_simple), 
-           data = qual_data))
-
-summary(lm(formula = log(o2_size+0.01) ~ log(o1_size+0.01)+as.factor(language)*as.factor(topic_simple), 
-           data = qual_data))
-
-summary(lm(formula = log(o3_size+0.01) ~ log(o2_size+0.01)+as.factor(language)*as.factor(topic_simple), 
-           data = qual_data))
-
-summary(lm(formula = log(o4_size+0.01) ~ log(o3_size+0.01)+as.factor(language)*as.factor(topic_simple), 
-           data = qual_data))
