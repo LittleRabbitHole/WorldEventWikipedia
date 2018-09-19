@@ -1,7 +1,14 @@
 #contingency table
-x = matrix(c(19, 37, 25, 34, 35, 
-             52, 37, 33, 44, 48,
-             33, 31, 22, 37, 45), ncol = 3)
+x = matrix(c(22, 51, 37, 15, 150, 
+             19, 37, 25, 11, 119,
+             14, 43, 25, 14, 127), ncol = 3)
+
+x = matrix(c(19, 37, 25, 11, 119,
+             14, 43, 25, 14, 127), ncol = 2)
+
+x = matrix(c(
+             86, 73, 68, 73, 79,
+             64, 84, 68, 93, 85), ncol = 2)
 chisq.test(x)
 
 x = matrix(c(62, 114, 15, 20, 
@@ -68,11 +75,18 @@ qual_data$lan_es[which(qual_data$language=='es')] <- 1
 summary(glm(formula = o1_qualscore ~ as.factor(lan_cn) + as.factor(lan_es), family = gaussian(),
             data = qual_data))
 
+summary(glm(formula = o1_qualscore ~ as.factor(lan_en), family = gaussian(),
+            data = qual_data))
+
 summary(lm(formula = o2_qualscore ~ o1_qualscore + as.factor(lan_cn) + as.factor(lan_es), 
            data = qual_data))
+summary(glm(formula = o2_qualscore ~ o1_qualscore + as.factor(lan_en), family = gaussian(),
+            data = qual_data))
 
 summary(lm(formula = o3_qualscore ~ o2_qualscore + as.factor(lan_cn) + as.factor(lan_es), 
            data = qual_data))
+summary(glm(formula = o3_qualscore ~ o2_qualscore + as.factor(lan_en), family = gaussian(),
+            data = qual_data))
 
 summary(lm(formula = o4_qualscore ~ o3_qualscore + as.factor(lan_cn) + as.factor(lan_es), 
            data = qual_data))
@@ -93,6 +107,22 @@ qual_data$topic_naturaldisaster = 0
 qual_data$topic_naturaldisaster[which(qual_data$topic_simple==3)] <- 1
 qual_data$topic_science = 0
 qual_data$topic_science[which(qual_data$topic_simple==6)] <- 1
+
+
+summary(lm(formula = o1_qualscore ~ topic_mandisaster + topic_naturaldisaster + topic_science, 
+           data = qual_data))
+
+summary(lm(formula = o2_qualscore ~ o1_qualscore + topic_mandisaster + topic_naturaldisaster + topic_science, 
+           data = qual_data))
+
+summary(lm(formula = o3_qualscore ~ o2_qualscore + topic_mandisaster + topic_naturaldisaster + topic_science, 
+           data = qual_data))
+
+summary(lm(formula = o4_qualscore ~ o3_qualscore + topic_mandisaster + topic_naturaldisaster + topic_science, 
+           data = qual_data))
+
+summary(lm(formula = o4_qualscore ~ topic_science, 
+           data = qual_data))
 
 summary(as.factor(qual_data$location))
 #Chinese  English English+   Others  Spanish 
@@ -133,17 +163,7 @@ t.test( o4_qualscore~as.factor(loc_English), data = qual_data)
 ggplot(qual_data, aes(x=o4_qualscore, fill=as.factor(loc_English))) + geom_density(alpha=.3)
 
 
-summary(lm(formula = o1_qualscore ~ topic_mandisaster + topic_naturaldisaster + topic_science, 
-           data = qual_data))
 
-summary(lm(formula = o2_qualscore ~ o1_qualscore + topic_mandisaster + topic_naturaldisaster + topic_science, 
-           data = qual_data))
-
-summary(lm(formula = o3_qualscore ~ o2_qualscore + topic_mandisaster + topic_naturaldisaster + topic_science, 
-           data = qual_data))
-
-summary(lm(formula = o4_qualscore ~ o3_qualscore + topic_mandisaster + topic_naturaldisaster + topic_science, 
-           data = qual_data))
 
 ###
 summary(lm(formula = o1_qualscore ~ as.factor(year), 
@@ -173,3 +193,5 @@ summary(lm(formula = o4_qualscore ~ o3_qualscore + as.factor(language),
            data = qual_data))
 
 
+summary(lm(formula = o4_qualscore ~ o3_qualscore + as.factor(language)*as.factor(year), 
+           data = qual_data))
