@@ -195,3 +195,9 @@ summary(lm(formula = o4_qualscore ~ o3_qualscore + as.factor(language),
 
 summary(lm(formula = o4_qualscore ~ o3_qualscore + as.factor(language)*as.factor(year), 
            data = qual_data))
+
+levels(as.factor(qual_data$location))
+qual_data$location = factor(qual_data$location,levels(qual_data$location)[c(5,1,2,3,4)])
+
+summary(lm(formula = o4_qualscore ~ as.factor(language)*as.factor(location), 
+           data = qual_data))
