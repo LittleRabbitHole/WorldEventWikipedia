@@ -167,8 +167,8 @@ f.close()
 import mwapi, mwreverts.api
 
 # Gather a page's revisions from the API
-session = mwapi.Session("https://en.wikipedia.org", user_agent="mwreverts basic usage script")
-
+session = mwapi.Session("https://zh.wikipedia.org", user_agent="mwreverts basic usage script")
+#https://meta.wikimedia.org/wiki/Research:Revert
 
 #An edit can reverting other edits, it can be reverted, or it can be reverted_to by another edit.
 def print_revert_status(rev_id, reverting, reverted, reverted_to):
@@ -181,8 +181,10 @@ def print_revert_status(rev_id, reverting, reverted, reverted_to):
     if reverted_to is not None:
         print(" - reverted_to in {revid} by {user}".format(**reverted_to.reverting))
 
-reverting, reverted, reverted_to = mwreverts.api.check(session, 616034852, rvprop={'user'})
-print_revert_status(616034852, reverting, reverted, reverted_to)
+reverting, reverted, reverted_to = mwreverts.api.check(session, rev_id=17234518, page_id=1623767, rvprop={'user','userid'})
+
+print_revert_status(17234518, reverting, reverted, reverted_to)
+
 reverted.reverting
 
 
