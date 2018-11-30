@@ -207,7 +207,7 @@ def articles_general_states():
                 articles_gstates['zh'] = zh_stats
             except Exception as e:
                 print ("zh", zh_title)
-                error_articles[title] = ['zh', post_key, str(e)]
+                error_articles[zh_title] = ['zh', post_key, str(e)]
         #esp    
         if row['es'] == True:
             es_title = row['es_title']
@@ -220,7 +220,7 @@ def articles_general_states():
                 articles_gstates['es'] = es_stats
             except Exception as e:
                 print ("es", es_title)
-                error_articles[title] = ['es', post_key, str(e)]
+                error_articles[es_title] = ['es', post_key, str(e)]
 
         #arb    
         if row['ar'] == True:
@@ -234,7 +234,7 @@ def articles_general_states():
                 articles_gstates['ar'] = ar_stats
             except Exception as e:
                 print ("ar", ar_title)
-                error_articles[title] = ['ar', post_key, str(e)]
+                error_articles[ar_title] = ['ar', post_key, str(e)]
             
         #add each general_states as content into all allxtooldatalst
         allxtooldatalst[post_key] = articles_gstates
@@ -242,12 +242,31 @@ def articles_general_states():
     return [allxtooldatalst, error_articles]
 
 
+def errorRecollection(error_articles, allxtooldatalst):
+    #safechar = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~\t\n\r\x0b\x0c'
+    
+    for key, item in error_articles.items():
+        title = key
+        lang = item[0]
+        postid = item[1]
+        
+        #site = "https://xtools.wmflabs.org/articleinfo/{}.wikipedia.org/{}".format(lang, title)
+        #site = quote(site, safe = safechar) #encode #safe = string.printable
+        site = "https://xtools.wmflabs.org/articleinfo/es.wikipedia.org/%C2%BFCu%C3%A1ndo%20te%20casas%3F"
+        try:
+            soup = session_request_soup(site)
+            stats = general_stats(soup)
+            allxtooldatalst[postid][lang] = stats
+        except Exception as e: 
+            print (lang, title)
+        
+    
+
 
 
 if __name__ == "__main__":
     [allxtooldatalst, error_articles] = articles_general_states()
-    
-    
+        
     pickle.dump( allxtooldatalst, open( "/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/post_article_xtools.p", "wb" ) )
     pickle.dump( error_articles, open( "/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/error_articles.p", "wb" ) )
     
