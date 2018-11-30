@@ -154,23 +154,26 @@ def articles_general_states():
     data = pd.read_table("/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/post_articles_set_r1.csv", 
                          sep=',', error_bad_lines = False)
     
-    error_articles = {}
-    
     safechar = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~\t\n\r\x0b\x0c'
     
     #this is for all 
-    allxtooldatalst = []
+    #allxtooldatalst is a dict of {...,(postid, postyear, postdate):articles_gstates,...} where articles_gstates as format of {en:{}, es:{}, cn:{}, ar:{}}
+    allxtooldatalst = {} 
+    
+    #place holder for error_articles
+    error_articles = {}
     
     for index, row in data.iterrows():
         if index % 10 == 0: print (index)
         
-        #for each post
-        postcontent = []#postid, postyear, postdate, content/gstats={en:{}, es:{}, cn:{}, ar:{}}
-        #post
+        #post metadata
         postid = str(row["postid"]) 
         postyear = str(row["postyear"])
         postdate = str(row["postdate"])
-        postcontent += [postid, postyear, postdate]
+        post_key = (postid, postyear, postdate)
+        
+        #for each post -- good
+        allxtooldatalst[post_key] = None #(postid, postyear, postdate): {en:{}, es:{}, cn:{}, ar:{}
         
         #content from xtools
         articles_gstates = {}
@@ -187,9 +190,10 @@ def articles_general_states():
         try:
             en_soup = session_request_soup(en_site)
             en_stats = general_stats(en_soup)
-            articles_gstates['en'][title] = en_stats
+            articles_gstates['en'] = en_stats
         except Exception as e: 
-            error_articles[title] = ['en', str(e)]
+            print ("en", title)
+            error_articles[title] = ['en', post_key, str(e)]
         
         #chinese
         if row['zh'] == True: 
@@ -202,7 +206,8 @@ def articles_general_states():
                 zh_stats = general_stats(zh_soup)
                 articles_gstates['zh'] = zh_stats
             except Exception as e:
-                error_articles[title] = ['zh', str(e)]
+                print ("zh", zh_title)
+                error_articles[title] = ['zh', post_key, str(e)]
         #esp    
         if row['es'] == True:
             es_title = row['es_title']
@@ -214,7 +219,8 @@ def articles_general_states():
                 es_stats = general_stats(es_soup)
                 articles_gstates['es'] = es_stats
             except Exception as e:
-                error_articles[title] = ['es', str(e)]
+                print ("es", es_title)
+                error_articles[title] = ['es', post_key, str(e)]
 
         #arb    
         if row['ar'] == True:
@@ -227,13 +233,11 @@ def articles_general_states():
                 ar_stats = general_stats(ar_soup)
                 articles_gstates['ar'] = ar_stats
             except Exception as e:
-                error_articles[title] = ['ar', str(e)]
-        
-        #append into postcontent with gstates content
-        postcontent.append(articles_gstates) #postcontent[-1]['ar']['ID']
-    
-        #append each postcontent into all allxtooldatalst
-        allxtooldatalst.append(postcontent)
+                print ("ar", ar_title)
+                error_articles[title] = ['ar', post_key, str(e)]
+            
+        #add each general_states as content into all allxtooldatalst
+        allxtooldatalst[post_key] = articles_gstates
     
     return [allxtooldatalst, error_articles]
 
