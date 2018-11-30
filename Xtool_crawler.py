@@ -14,6 +14,33 @@ from urllib.request import Request, urlopen
 from urllib.parse import quote
 import pandas as pd
 import pickle
+import requests
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
+
+
+
+def session_request_soup(site):
+    #set session
+    session = requests.Session()
+    retry = Retry(connect=3, backoff_factor=0.5)
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+
+    #use session to retrive data
+    #site= "https://xtools.wmflabs.org/articleinfo/en.wikipedia.org/Black%20Lives%20Matter"
+    hdr = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
+           'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+           'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
+           'Accept-Encoding': 'none',
+           'Accept-Language': 'en-US,en;q=0.8',
+           'Connection': 'keep-alive'}
+    
+    req = session.get(site, headers=hdr) #{'User-Agent': 'Mozilla/5.0'}
+    webpage = req.text
+    soup = BeautifulSoup(webpage, features="xml")
+    return soup
 
 
 def request_soup(site):
@@ -120,36 +147,45 @@ def article_monthly_edits():
 
 
 def articles_general_states():
-    #input dataframe: 'year', 'time', 'article', 'zh'(T/F), 'es'(T/F), 'zh_title', 'es_title'
-    #return dict as: article:[language, general_states]
+    #input dataframe: ['postid', 'postyear', 'postdate', 'en_title', 'en_pageid',
+       #'ar'(T/F),'ar_pageid', 'ar_title', 'zh'(T/F), 'zh_pageid', 'zh_title', 'es'(T/F), 'es_pageid', 'es_title']
+    #return list of posts with gstates content
     
-    data = pd.read_table("/Users/ANG/OneDrive/Documents/Pitt_PhD/ResearchProjects/WikiWorldEvent/data/posted_itn.csv", 
+    data = pd.read_table("/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/post_articles_set_r1.csv", 
                          sep=',', error_bad_lines = False)
-    #all_articles = list(data['article']) + list(data['zh_title']) + list(data['es_title'])
-    #all_articles = list(set(all_articles)) #5564 totle articles
     
-#    f = open("/Users/ANG/OneDrive/Documents/Pitt_PhD/ResearchProjects/WikiWorldEvent/data/posted_itn.csv")
-#    lines = f.read().split("\n\n")
-#    f.close()
-    
-    articles_gstates = {}
-    articles_gstates['en'] = {}
-    articles_gstates['zh'] = {}
-    articles_gstates['es'] = {}
     error_articles = {}
     
     safechar = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~\t\n\r\x0b\x0c'
     
+    #this is for all 
+    allxtooldatalst = []
+    
     for index, row in data.iterrows():
-        if index % 50 == 0: print (index)
-        #posted_time = str(row['time']) + ', '+ str(row['year']) 
+        if index % 10 == 0: print (index)
+        
+        #for each post
+        postcontent = []#postid, postyear, postdate, content/gstats={en:{}, es:{}, cn:{}, ar:{}}
+        #post
+        postid = str(row["postid"]) 
+        postyear = str(row["postyear"])
+        postdate = str(row["postdate"])
+        postcontent += [postid, postyear, postdate]
+        
+        #content from xtools
+        articles_gstates = {}
+        articles_gstates['en'] = None
+        articles_gstates['zh'] = None
+        articles_gstates['es'] = None
+        articles_gstates['ar'] = None
         
         #english
-        title = row["article"] #error in the title "285263) 1998 QE2"
+        title = row["en_title"] 
+        #pageid = row["en_pageid"] 
         en_site = "https://xtools.wmflabs.org/articleinfo/en.wikipedia.org/{}".format(title)
         en_site = quote(en_site, safe = safechar) #encode #safe = string.printable
         try:
-            en_soup = request_soup(en_site)
+            en_soup = session_request_soup(en_site)
             en_stats = general_stats(en_soup)
             articles_gstates['en'][title] = en_stats
         except Exception as e: 
@@ -158,33 +194,59 @@ def articles_general_states():
         #chinese
         if row['zh'] == True: 
             zh_title = row['zh_title']
+            #zh_pageid = str(int(row["zh_pageid"]))
             zh_site = "https://xtools.wmflabs.org/articleinfo/zh.wikipedia.org/{}".format(zh_title)
             zh_site = quote(zh_site, safe = safechar) #encode
             try:
-                zh_soup = request_soup(zh_site)
+                zh_soup = session_request_soup(zh_site)
                 zh_stats = general_stats(zh_soup)
-                articles_gstates['zh'][zh_title] = zh_stats
+                articles_gstates['zh'] = zh_stats
             except Exception as e:
                 error_articles[title] = ['zh', str(e)]
         #esp    
         if row['es'] == True:
             es_title = row['es_title']
+            #es_pageid = str(int(row["es_pageid"]))
             es_site = "https://xtools.wmflabs.org/articleinfo/es.wikipedia.org/{}".format(es_title)
             es_site = quote(es_site, safe = safechar) #encode
             try:
-                es_soup = request_soup(es_site)
+                es_soup = session_request_soup(es_site)
                 es_stats = general_stats(es_soup)
-                articles_gstates['es'][es_title] = es_stats
+                articles_gstates['es'] = es_stats
             except Exception as e:
                 error_articles[title] = ['es', str(e)]
+
+        #arb    
+        if row['ar'] == True:
+            ar_title = row['ar_title']
+            #ar_pageid = str(int(row["ar_pageid"]))
+            ar_site = "https://xtools.wmflabs.org/articleinfo/ar.wikipedia.org/{}".format(ar_title)
+            ar_site = quote(ar_site, safe = safechar) #encode
+            try:
+                ar_soup = session_request_soup(ar_site)
+                ar_stats = general_stats(ar_soup)
+                articles_gstates['ar'] = ar_stats
+            except Exception as e:
+                error_articles[title] = ['ar', str(e)]
+        
+        #append into postcontent with gstates content
+        postcontent.append(articles_gstates) #postcontent[-1]['ar']['ID']
     
-    return [articles_gstates, error_articles]
+        #append each postcontent into all allxtooldatalst
+        allxtooldatalst.append(postcontent)
+    
+    return [allxtooldatalst, error_articles]
 
-[articles_gstates, error_articles] = articles_general_states()
 
-pickle.dump( articles_gstates, open( "/Users/ANG/OneDrive/Documents/Pitt_PhD/ResearchProjects/WikiWorldEvent/data/articles_gstates.p", "wb" ) )
-pickle.dump( error_articles, open( "/Users/ANG/OneDrive/Documents/Pitt_PhD/ResearchProjects/WikiWorldEvent/data/error_articles.p", "wb" ) )
 
-#read
-#articles_gstates = pickle.load( open( "/Users/ANG/OneDrive/Documents/Pitt_PhD/ResearchProjects/WikiWorldEvent/data/articles_gstates.p", "rb" ) )
-#error_articles = pickle.load( open( "/Users/ANG/OneDrive/Documents/Pitt_PhD/ResearchProjects/WikiWorldEvent/data/error_articles.p", "rb" ) )
+
+if __name__ == "__main__":
+    [allxtooldatalst, error_articles] = articles_general_states()
+    
+    
+    pickle.dump( allxtooldatalst, open( "/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/post_article_xtools.p", "wb" ) )
+    pickle.dump( error_articles, open( "/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/error_articles.p", "wb" ) )
+    
+    #read
+    #articles_gstates = pickle.load( open( "/Users/ANG/OneDrive/Documents/Pitt_PhD/ResearchProjects/WikiWorldEvent/data/articles_gstates.p", "rb" ) )
+    #error_articles = pickle.load( open( "/Users/ANG/OneDrive/Documents/Pitt_PhD/ResearchProjects/WikiWorldEvent/data/error_articles.p", "rb" ) )

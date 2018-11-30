@@ -2,8 +2,13 @@
 # -*- coding: utf-8 -*-
 """
 Created on Wed Nov 28 17:02:50 2018
+
 Language link collection for a data frame with article title in English Wikipedia
+
+output data: all_article_langlinks.pkl
+
 <-> https://zh.wikipedia.org/?curid=1543200
+
 @author: angli
 """
 
@@ -15,9 +20,9 @@ import urllib.parse
 import json
 import csv
 import os
-import requests
 import sys
 import pickle
+import requests
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
@@ -34,6 +39,8 @@ def returnJsonCheck(response) -> dict:
 
 
 def getPageId(lang, title):
+    """insert language and article title, output pageid"""
+    
     api = "https://{}.wikipedia.org/w/api.php?action=query&format=json&titles={}".format(lang, title)
 
     #set session
@@ -52,6 +59,9 @@ def getPageId(lang, title):
 
 
 def getLanglinks(title):
+    """insert english article title, output language links zh, en, es, ar 
+    as article_lang_links = {"ar": [title, pageid, url], "en": [], ...}"""
+    
     api = "https://en.wikipedia.org/w/api.php?action=query&format=json&titles={}&prop=langlinks&lllimit=500&llprop=langname|url".format(title)
     
     #set session
@@ -105,6 +115,7 @@ if __name__ == "__main__":
                                  sep=',', error_bad_lines = False)
     
     #collect the langlinks for all the articles
+    #format as [postid, post_year, post_date, title, pageid, article_lang_links]
     all_article_langlinks = []
     i=0
     for index, row in data.iterrows():
