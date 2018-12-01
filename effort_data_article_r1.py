@@ -18,5 +18,3 @@ f = open('/Users/jiajunluo/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research
 all_articles = pickle.load(f)         # load file content as mydict
 f.close()
 
-
-list(error_articles.keys())[0]
