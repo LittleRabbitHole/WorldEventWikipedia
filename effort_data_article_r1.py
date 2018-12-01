@@ -14,7 +14,7 @@ f = open('/Users/jiajunluo/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research
 error_articles = pickle.load(f)         # load file content as mydict
 f.close()
 
-f = open('/Users/jiajunluo/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/post_article_xtools.p', 'rb')   # 'r' for reading; can be omitted
+<<<<<<< HEAD
 all_articles = pickle.load(f)         # load file content as mydict
 f.close()
 
