@@ -39,7 +39,7 @@ def session_request_soup(site):
     
     req = session.get(site, headers=hdr) #{'User-Agent': 'Mozilla/5.0'}
     webpage = req.text
-    soup = BeautifulSoup(webpage, features="xml")
+    soup = BeautifulSoup(webpage, features="lxml")
     return soup
 
 
@@ -151,7 +151,10 @@ def articles_general_states():
        #'ar'(T/F),'ar_pageid', 'ar_title', 'zh'(T/F), 'zh_pageid', 'zh_title', 'es'(T/F), 'es_pageid', 'es_title']
     #return list of posts with gstates content
     
-    data = pd.read_table("/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/post_articles_set_r1.csv", 
+#    data = pd.read_table("/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/post_articles_set_r1.csv", 
+#                         sep=',', error_bad_lines = False)
+    
+    data = pd.read_table("/Users/jiajunluo/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/post_articles_set_r1.csv", 
                          sep=',', error_bad_lines = False)
     
     safechar = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~\t\n\r\x0b\x0c'
@@ -171,6 +174,8 @@ def articles_general_states():
         postyear = str(row["postyear"])
         postdate = str(row["postdate"])
         post_key = (postid, postyear, postdate)
+        #first mond
+        posttime = postyear + 
         
         #for each post -- good
         allxtooldatalst[post_key] = None #(postid, postyear, postdate): {en:{}, es:{}, cn:{}, ar:{}
@@ -185,7 +190,7 @@ def articles_general_states():
         #english
         title = row["en_title"] 
         #pageid = row["en_pageid"] 
-        en_site = "https://xtools.wmflabs.org/articleinfo/en.wikipedia.org/{}".format(title)
+        en_site = "https://xtools.wmflabs.org/articleinfo/en.wikipedia.org/{}".format(title)#/2011-03-24/2011-04-24
         en_site = quote(en_site, safe = safechar) #encode #safe = string.printable
         try:
             en_soup = session_request_soup(en_site)
