@@ -15,6 +15,7 @@ all_articles = pickle.load(f)         # load file content as mydict
 f.close()
 
 <<<<<<< HEAD
+=======
 all_articles = pickle.load(f)         # load file content as mydict
 f.close()
 
