@@ -10,11 +10,12 @@ import pickle
 import pandas as pd
 
 
-f = open('/Users/jiajunluo/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/error_articles.p', 'rb')   # 'r' for reading; can be omitted
-error_articles = pickle.load(f)         # load file content as mydict
+f = open('/Users/jiajunluo/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/post_article_xtools.p', 'rb')   # 'r' for reading; can be omitted
+all_articles = pickle.load(f)         # load file content as mydict
 f.close()
 
 <<<<<<< HEAD
 all_articles = pickle.load(f)         # load file content as mydict
 f.close()
 
+>>>>>>> 1e2b73220ec30afae502cad05d94c2ba727703cb
