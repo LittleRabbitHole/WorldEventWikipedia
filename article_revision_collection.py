@@ -48,7 +48,7 @@ def articleRevisions(data):
         es_pageid = str(int(row["es_pageid"])) if not pd.isna(row["es_pageid"]) else None
         
         if en_pageid is not None:
-            en_article = [postid, postyear, postdate, postdatetime, en_pageid]
+            en_article = [postid, "en", postyear, postdate, postdatetime, en_pageid]
             
             en_url = "https://en.wikipedia.org/w/api.php?action=query"\
             "&format=json&prop=revisions&rvdir=newer&rvstart={}&rvend={}"\
@@ -63,7 +63,7 @@ def articleRevisions(data):
             article_revision_lst.append(en_article)
             
         if ar_pageid is not None:
-            ar_article = [postid, postyear, postdate, postdatetime, ar_pageid]
+            ar_article = [postid, "ar", postyear, postdate, postdatetime, ar_pageid]
             
             ar_url = "https://ar.wikipedia.org/w/api.php?action=query"\
             "&format=json&prop=revisions&rvdir=newer&rvstart={}&rvend={}"\
@@ -78,7 +78,7 @@ def articleRevisions(data):
             article_revision_lst.append(ar_article)
                 
         if zh_pageid is not None:
-            zh_article = [postid, postyear, postdate, postdatetime, zh_pageid]
+            zh_article = [postid, "zh", postyear, postdate, postdatetime, zh_pageid]
             
             zh_url = "https://zh.wikipedia.org/w/api.php?action=query"\
             "&format=json&prop=revisions&rvdir=newer&rvstart={}&rvend={}"\
@@ -93,7 +93,7 @@ def articleRevisions(data):
             article_revision_lst.append(zh_article)
             
         if es_pageid is not None:
-            es_article = [postid, postyear, postdate, postdatetime, es_pageid]
+            es_article = [postid, "es", postyear, postdate, postdatetime, es_pageid]
             
             es_url = "https://es.wikipedia.org/w/api.php?action=query"\
             "&format=json&prop=revisions&rvdir=newer&rvstart={}&rvend={}"\
