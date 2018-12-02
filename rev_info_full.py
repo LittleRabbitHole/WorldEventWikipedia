@@ -5,9 +5,9 @@ import re
 # from bs4 import BeautifulSoup
 import requests
 import json
-import csv
+#import csv
 
-import rev_quality as rq
+#import rev_quality as rq
 
 # get the page data
 def getPageInfo(revid,article_id,language):
@@ -54,64 +54,66 @@ def sectionNoList(content):
         sectionNoList.append(section.count('='))
     return sectionNoList
 
-linkInfo = pd.read_csv("data/rev_pool_candidate.csv")
-# cnLinkInfo=linkInfo[linkInfo.language=='es']
-result = []
-langs = {'en': 'en', 'es': 'es', 'cn': 'zh'}
- 
-for idx,row in linkInfo.iterrows():
-    entry = row.to_dict()
-    revid = row['revid']
-    print(revid)
-    language = row['language']
-    article_id = row['article_id']
 
-    content = getPageInfo(revid, article_id, langs[language])
-
-    if content:
-        entry['references'] = refNum(content)
-        entry['wiki_links'] = wikiNum(content)
-        entry['external_links'] = exNum(content)
-
-        sectionNoList=[]
-        pattern = re.compile(r'\=\=.*\=\=.*\n')
-        result_sec=pattern.findall(content)
-        sectionNoList=[]
-        # change section list into number list
-        for section in result_sec:
-            sectionNoList.append(section.count('='))
-        if sectionNoList:
-            entry['section_depth']=len(set(sectionNoList))
-            entry['section_breadth']=sectionNoList.count(4)
-            entry['section_num']=len(sectionNoList)
+if __name__ == "__main__":
+    linkInfo = pd.read_csv("data/rev_pool_candidate.csv")
+    # cnLinkInfo=linkInfo[linkInfo.language=='es']
+    result = []
+    langs = {'en': 'en', 'es': 'es', 'cn': 'zh'}
+     
+    for idx,row in linkInfo.iterrows():
+        entry = row.to_dict()
+        revid = row['revid']
+        print(revid)
+        language = row['language']
+        article_id = row['article_id']
+    
+        content = getPageInfo(revid, article_id, langs[language])
+    
+        if content:
+            entry['references'] = refNum(content)
+            entry['wiki_links'] = wikiNum(content)
+            entry['external_links'] = exNum(content)
+    
+            sectionNoList=[]
+            pattern = re.compile(r'\=\=.*\=\=.*\n')
+            result_sec=pattern.findall(content)
+            sectionNoList=[]
+            # change section list into number list
+            for section in result_sec:
+                sectionNoList.append(section.count('='))
+            if sectionNoList:
+                entry['section_depth']=len(set(sectionNoList))
+                entry['section_breadth']=sectionNoList.count(4)
+                entry['section_num']=len(sectionNoList)
+            else:
+                entry['section_depth']=0
+                entry['section_breadth']=0
+                entry['section_num']=0
         else:
-            entry['section_depth']=0
-            entry['section_breadth']=0
-            entry['section_num']=0
-    else:
-        entry['references'] = -1
-        entry['wiki_links'] = -1
-        entry['external_links'] = -1
-        entry['section_depth']=-1
-        entry['section_breadth']=-1
-        entry['section_num']=-1
+            entry['references'] = -1
+            entry['wiki_links'] = -1
+            entry['external_links'] = -1
+            entry['section_depth']=-1
+            entry['section_breadth']=-1
+            entry['section_num']=-1
+        
+        # sectionNoList=[]
+        # pattern = re.compile(r'\=\=.*\=\=.*\n')
+        # result=pattern.findall(content)
+        # sectionNoList=[]
+        # # change section list into number list
+        # for section in result:
+        #     sectionNoList.append(section.count('='))
+        # if sectionNoList:
+        #     sectionDepth=len(set(sectionNoList))
+        #     sectionBreadth=sectionNoList.count(4)
+        #     sectionNo=len(sectionNoList)
+        
+        result.append(entry)
     
-    # sectionNoList=[]
-    # pattern = re.compile(r'\=\=.*\=\=.*\n')
-    # result=pattern.findall(content)
-    # sectionNoList=[]
-    # # change section list into number list
-    # for section in result:
-    #     sectionNoList.append(section.count('='))
-    # if sectionNoList:
-    #     sectionDepth=len(set(sectionNoList))
-    #     sectionBreadth=sectionNoList.count(4)
-    #     sectionNo=len(sectionNoList)
-    
-    result.append(entry)
-
-df_full = pd.DataFrame(result)
-df_full.to_csv('data/rev_candidate_full.csv')
+    df_full = pd.DataFrame(result)
+    df_full.to_csv('data/rev_candidate_full.csv')
 
 
 # for value in cnLinkInfo.iterrows():

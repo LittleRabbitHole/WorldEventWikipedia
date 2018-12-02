@@ -3,7 +3,14 @@
 """
 Created on Thu Nov 29 23:09:23 2018
 
-this is to collect the first month revision -- effort
+this is to collect the first month revision for all 4 language articles -- effort
+
+article_revision_lst --> article_revisions_list_6739.p
+[postid, "en", postyear, postdate, postdatetime, en_pageid, {all revis}]
+
+article_revisions --> article_revisions_dict_2064.p
+article_revisions[postid]["zh"] = zh_article
+zh_article = [postid, "en", postyear, postdate, postdatetime, en_pageid, {all revis}]
 
 @author: ang
 """
