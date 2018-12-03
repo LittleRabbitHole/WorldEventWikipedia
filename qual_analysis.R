@@ -1,28 +1,3 @@
-#contingency table
-x = matrix(c(22, 51, 37, 15, 150, 
-             19, 37, 25, 11, 119,
-             14, 43, 25, 14, 127), ncol = 3)
-
-x = matrix(c(19, 37, 25, 11, 119,
-             14, 43, 25, 14, 127), ncol = 2)
-
-x = matrix(c(
-             86, 73, 68, 73, 79,
-             64, 84, 68, 93, 85), ncol = 2)
-chisq.test(x)
-
-x = matrix(c(62, 114, 15, 20, 
-             81, 147, 17, 31,
-             68, 110, 17, 28), ncol = 3)
-chisq.test(x)
-
-x = matrix(c(52, 70, 89, 
-             75, 88, 113,
-             62, 68, 93), ncol = 3)
-chisq.test(x)
-
-######effort#########
-
 
 ######quality##########
 qual_raw = read.csv("/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEvents&Wikipedia/data/Ang/rev_candidate_full_section.csv")

@@ -36,7 +36,7 @@ if __name__ == "__main__":
     #write out
     f = open("/Users/jiajunluo/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/effort_dataset_r1.csv", "w")
     #write first row
-    f.write('postid,lang,postyear,postdatetime,pageid,article_firstedit_ever_revid, article_firstedit_ever_date, article_firstedit_ever_timestamp,article_firstedit_ever_size,totaledits_byall,totaledits_byregistered,unique_all_editors,unique_registered_editors,total_size_added,sizeadded_byregistered,firstedit_revid,endfirstday_revid,endfirstweek_revid,firstmonth_revid\n')
+    f.write('postid,lang,postyear,postdatetime,pageid,article_firstedit_ever_revid,article_firstedit_ever_date,article_firstedit_ever_timestamp,article_firstedit_ever_size,totaledits_byall,totaledits_byregistered,unique_all_editors,unique_registered_editors,total_size_added,sizeadded_byregistered,firstedit_revid,endfirstday_revid,endfirstweek_revid,firstmonth_revid\n')
     
     i=0
     for article_post in articles_revis:  
@@ -59,9 +59,10 @@ if __name__ == "__main__":
             article_firstedit_ever_date = datetime.strptime(article_firstedit_ever_timestamp,'%Y-%m-%dT%H:%M:%SZ').strftime("%Y-%m-%d")
             article_firstedit_ever_size = article_firstedit_ever['size']
         except:
-            article_firstedit_ever_revid = ""
-            article_firstedit_ever_timestamp = ""
-            article_firstedit_ever_size = ""
+            article_firstedit_ever_revid = "-1"
+            article_firstedit_ever_timestamp = "-1"
+            article_firstedit_ever_date = "-1"
+            article_firstedit_ever_size = "-1"
         article_firstedit_ever_info = [str(article_firstedit_ever_revid), article_firstedit_ever_date, article_firstedit_ever_timestamp, str(article_firstedit_ever_size)]
         
         #revision data

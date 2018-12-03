@@ -12,12 +12,12 @@ import json
 # get the page data
 def getPageInfo(revid,article_id,language):
     content=""
-    url='https://'+language+'.wikipedia.org/w/api.php?action=query&prop=revisions&rvprop=content&format=json&inprop=url&revids='+str(revid)
+    url='https://'+language+'.wikipedia.org/w/api.php?action=query&prop=revisions&rvprop=size|content&format=json&inprop=url&revids='+str(revid)
     web_data = requests.get(url)
     datas = json.loads(web_data.text)
-    if("*" in datas["query"]["pages"][str(article_id)]["revisions"][0].keys() ):
-        content=datas["query"]["pages"][str(article_id)]["revisions"][0]["*"]
-    return content
+    content=datas["query"]["pages"][str(article_id)]["revisions"][0].get("*")
+    size = datas["query"]["pages"][str(article_id)]["revisions"][0].get("size")
+    return (content, size)
 
 #get reference number
 def refNum(content):
@@ -55,6 +55,42 @@ def sectionNoList(content):
     return sectionNoList
 
 
+def qualityMeasures(revid, article_id, lang):
+    content, size = getPageInfo(revid, article_id, lang)
+    measures = {}
+    if content:
+        measures['size'] = size
+        measures['references'] = refNum(content)
+        measures['wiki_links'] = wikiNum(content)
+        measures['external_links'] = exNum(content)
+
+        #sectionNoList=[]
+        pattern = re.compile(r'\=\=.*\=\=.*\n')
+        result_sec=pattern.findall(content)
+        sectionNoList=[]
+        # change section list into number list
+        for section in result_sec:
+            sectionNoList.append(section.count('='))
+        if sectionNoList:
+            measures['section_depth']=len(set(sectionNoList))
+            measures['section_breadth']=sectionNoList.count(4)
+            measures['section_num']=len(sectionNoList)
+        else:
+            measures['section_depth']=0
+            measures['section_breadth']=0
+            measures['section_num']=0
+    else:
+        measures['size'] = -1
+        measures['references'] = -1
+        measures['wiki_links'] = -1
+        measures['external_links'] = -1
+        measures['section_depth']=-1
+        measures['section_breadth']=-1
+        measures['section_num']=-1
+    
+    return measures
+
+
 if __name__ == "__main__":
     linkInfo = pd.read_csv("data/rev_pool_candidate.csv")
     # cnLinkInfo=linkInfo[linkInfo.language=='es']
@@ -75,7 +111,7 @@ if __name__ == "__main__":
             entry['wiki_links'] = wikiNum(content)
             entry['external_links'] = exNum(content)
     
-            sectionNoList=[]
+            #sectionNoList=[]
             pattern = re.compile(r'\=\=.*\=\=.*\n')
             result_sec=pattern.findall(content)
             sectionNoList=[]
