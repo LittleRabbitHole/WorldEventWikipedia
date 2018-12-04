@@ -76,12 +76,15 @@ if __name__ == "__main__":
     
     post_articles = pd.read_csv("/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/post_articles_set_r1.csv")
     post_articles_topic = addTopics(post_articles, post_topic_dict)
+    post_articles_topic.to_csv('/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/post_articles_topic_r1.csv', index=False)
     
     efforts = pd.read_csv("/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/effort_dataset_r1.csv")
     efforts_topic = addTopics(efforts, post_topic_dict)
+    efforts_topic.to_csv('/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/efforts_topic_r1.csv', index=False)
     
     quality = pd.read_csv("/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/qualitymeasures_dataset_r1.csv")
     quality_topic = addTopics(quality, post_topic_dict)
+    quality_topic.to_csv('/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/quality_topic_r1.csv', index=False)
 
 
 
