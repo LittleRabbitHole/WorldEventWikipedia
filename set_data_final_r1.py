@@ -5,6 +5,9 @@ Created on Mon Dec  3 16:13:02 2018
 
 this is to set data, merging different sources
 
+Step1: adding topic 
+input:
+    from post_topics
 output:
     post_articles_topic_r1.csv
     efforts_topic_r1.csv

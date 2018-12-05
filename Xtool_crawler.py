@@ -175,7 +175,7 @@ def articles_general_states():
         postdate = str(row["postdate"])
         post_key = (postid, postyear, postdate)
         #first mond
-        posttime = postyear + 
+        #posttime = postyear + postdate
         
         #for each post -- good
         allxtooldatalst[post_key] = None #(postid, postyear, postdate): {en:{}, es:{}, cn:{}, ar:{}
