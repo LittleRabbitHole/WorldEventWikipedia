@@ -33,7 +33,7 @@ if __name__ == "__main__":
 
     #write out
     f = open("/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/qualitymeasures_dataset_r1.csv", "w")
-    #write first row
+    #write first row, column names
     f.write('postid,lang,postyear,postdatetime,pageid,article_firstedit_ever_date,o0_size,o0_external_links,o0_wiki_links,o0_references,o0_section_breadth,o0_section_depth,o0_section_num,o1_size,o1_external_links,o1_wiki_links,o1_references,o1_section_breadth,o1_section_depth,o1_section_num,o2_size,o2_external_links,o2_wiki_links,o2_references,o2_section_breadth,o2_section_depth,o2_section_num,o3_size,o3_external_links,o3_wiki_links,o3_references,o3_section_breadth,o3_section_depth,o3_section_num,o4_size,o4_external_links,o4_wiki_links,o4_references,o4_section_breadth,o4_section_depth,o4_section_num\n')
     
     i=0
