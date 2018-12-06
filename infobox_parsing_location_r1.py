@@ -18,14 +18,14 @@ import wptools
 import pickle
 
 
-def checkLocKeys(key_lst):
-    checkstrlst = ['site', 'coordinate','map']
-    outlockeys = []
-    for key in key_lst:
+def checkLocKeys(key_lst_lower):
+    checkstrlst = ['site', 'coordinate','map', 'place','capital', 'city', 'country']
+    outlockeys_lower = []
+    for key in key_lst_lower:
         for chsckstr in checkstrlst:
             if chsckstr in key:
-                outlockeys.append(key)
-    return outlockeys
+                outlockeys_lower.append(key)
+    return outlockeys_lower
 
 
 
@@ -43,35 +43,55 @@ def locInfobox(data):
         
         #second level keys: en_title, info_location, info_relates
         pagetitle = str(row["en_title"])
-        loc_info_data["en_title"] = pagetitle
+        loc_info_data[postid]["en_title"] = pagetitle
         
         page = wptools.page(pagetitle)#info box
         page.get_parse()
         infocontent = page.data.get('infobox')
-        info_location = [None,None,None]
-        info_relates = ""
+        
+        loc_info_data[postid]['country_code'] = ""
+        loc_info_data[postid]['country'] = ""
+        loc_info_data[postid]['residence'] = ""
+        loc_info_data[postid]["info_location"] = [None,None,None]
+        loc_info_data[postid]["info_relates"] = []
         if infocontent is not None:
             key_lst = list(infocontent.keys())
-            if "location" in key_lst:
-                location = infocontent.get("location")
-                info_location[0] = location
-            elif "locale" in key_lst:
-                locale = infocontent.get("locale")
-                info_location[1] = locale
-            elif "nation" in key_lst:
-                nation = infocontent.get("nation")
-                info_location[2] = nation
-            else:
-                other_lockeys = checkLocKeys(key_lst)
-                if len(other_lockeys) != 0:
-                    for lockey in other_lockeys:
-                        loc_item = infocontent.get(lockey)
-                        info_relates = info_relates + "||" + loc_item
-        loc_info_data["info_location"] = info_location
-        loc_info_data["info_relates"] = info_relates      
+            key_lst_lower = [x.lower() for x in key_lst]
+            checked_keys = []
+            if "location" in key_lst_lower:
+                x = key_lst[key_lst_lower.index("location")]
+                checked_keys.append(x)
+                loc_info_data[postid]["info_location"][0] = infocontent.get(x)
+            if "locale" in key_lst:
+                y = key_lst[key_lst_lower.index("locale")]
+                checked_keys.append(y)
+                loc_info_data[postid]["info_location"][1] = infocontent.get(y)
+            if "nationality" in key_lst:
+                z = key_lst[key_lst_lower.index("nationality")]
+                checked_keys.append(z)
+                loc_info_data[postid]["info_location"][2] = infocontent.get(z)
+            if "country_code" in key_lst:
+                a = key_lst[key_lst_lower.index("country_code")]
+                checked_keys.append(a)
+                loc_info_data[postid]["country_code"] = infocontent.get(a)
+            if "country" in key_lst:
+                b = key_lst[key_lst_lower.index("country")]
+                checked_keys.append(b)
+                loc_info_data[postid]["country"] = infocontent.get(b)
+            if "residence" in key_lst:
+                c = key_lst[key_lst_lower.index("residence")]
+                checked_keys.append(c)
+                loc_info_data[postid]["residence"] = infocontent.get(c)
+            
+            other_lockeys_lower = checkLocKeys(key_lst_lower)
+            if len(other_lockeys_lower) != 0:
+                for lockey_lower in other_lockeys_lower:
+                    lockey = key_lst[key_lst_lower.index(lockey_lower)]
+                    loc_item = infocontent.get(lockey)
+                    loc_info_data[postid]["info_relates"].append(loc_item)
     
     return loc_info_data
 
-data = pd.read_csv("/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/post_articles_set_r1.csv")
+data = pd.read_csv("/Users/jiajunluo/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/post_articles_set_r1.csv")
 loc_info_data = locInfobox(data)
-pickle.dump( loc_info_data, open( "/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/post_location.p", "wb" ) )
+pickle.dump( loc_info_data, open( "/Users/jiajunluo/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/post_loc_info.p", "wb" ) )
