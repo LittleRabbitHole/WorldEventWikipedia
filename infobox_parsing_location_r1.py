@@ -172,7 +172,7 @@ def locProcess(loc_info_data):
             residence_lst = residence.lower().strip().split(" ")
             residence_lst_clean = [x for x in residence_lst if x != ""]
             residence_clean = " ".join(residence_lst_clean)
-            locationTerms[2] = residence
+            locationTerms[2] = residence_clean
         if list(set(content["info_location"]))[0] is not None:
             #rawterms = list(set(content["info_location"]))
             rawterms = [x for x in list(set(content["info_location"])) if x is not None]
@@ -182,8 +182,11 @@ def locProcess(loc_info_data):
         if content.get("info_relates") is not None:
             info_raw_lst = content.get("info_relates")
             info_raw_lst = [re.sub(URL_PATTERN, '', x) for x in info_raw_lst]
-            info_lst = [re.sub(r'[^a-zA-Z\-\_]', ' ', x) for x in info_raw_lst]
-            otherTerms += info_lst
+            info_lst = [re.sub(r'[^a-zA-Z\-\_\,]', ' ', x) for x in info_raw_lst]
+            for x in info_lst:
+                info_lst_update = []+ x.strip().split(",")
+            info_lst_update = [x.strip() for x in info_lst_update]
+            otherTerms += info_lst_update
         
         loc_clean_terms[postid] = [content['en_title'], locationTerms, otherTerms]
     
@@ -236,10 +239,20 @@ if __name__ == "__main__":
     country_lst, country_code_dict, country_langs_dict = countryInfo() #country names as key
     
     allcountrycodes= {}
+    i=1
     for postid, item in loc_clean_terms.items():
+        i+=1
+        if i%50==0: print(i)
         allcountrycodes[postid] = {}
         en_title = item[0]
         allcountrycodes[postid]['en_title'] = en_title
+        allcountrycodes[postid]['title_countries'] = []
+        title_terms = en_title.split(" ")
+        for term in title_terms:
+            yes_citicheck_l, pos_citicheck_l = checkCountryfromCity(term, country_citi_dict)
+            allcountrycodes[postid]['title_countries'] += yes_citicheck_l
+            yes_countrycheck_l, pos_countrycheck_l = checkCountryfromCountry(term, country_lst, country_code_dict)
+            allcountrycodes[postid]['title_countries'] +=  yes_countrycheck_l
         
         allcountrycodes[postid]['yes1_countries'] = []
         allcountrycodes[postid]['yes1_citi_countries'] = []
