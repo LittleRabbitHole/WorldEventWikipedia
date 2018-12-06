@@ -178,7 +178,10 @@ def locProcess(loc_info_data):
             rawterms = [x for x in list(set(content["info_location"])) if x is not None]
             rawterms = [re.sub(URL_PATTERN, '', x) for x in rawterms]
             term = [re.sub(r'[^a-zA-Z\-\_]', ' ', x) for x in rawterms]
-            otherTerms += term
+            for x in term:
+                term_update = []+ x.strip().split(",")
+            term_update = [x.strip() for x in term_update]
+            otherTerms += term_update
         if content.get("info_relates") is not None:
             info_raw_lst = content.get("info_relates")
             info_raw_lst = [re.sub(URL_PATTERN, '', x) for x in info_raw_lst]
