@@ -18,6 +18,61 @@ import pandas as pd
 import wptools
 import pickle
 import re
+import csv
+
+
+def city_country_gnrtor():
+    """
+    this is to return a country_code:[cities] dictionary for check
+    """
+    column_names = ["geonameid", "name", "asciiname", "alternatenames", "lati", "longti", "featureclasee", "featurecode","country_code","cc2","admin1code","admin2code","admin3code","admin4code","population","elevation","dem","timezone","modifieddate"]
+    citi500_country = pd.read_table("/Users/jiajunluo/OneDrive/Documents/Pitt_PhD/ResearchProjects/datasets/cities500.txt", header=None, names = column_names)
+    
+    country_grouped = citi500_country.groupby("country_code")
+    country_cities = {}
+    n=0
+    for cgroup in country_grouped:
+        n+=1
+        #if n==1: break
+        country_code = cgroup[0]
+        
+        #select on before and after
+        country_data = cgroup[1]#.groupby(['after_first_event_edit']) 
+        cities1 = list(country_data['name'].dropna())
+        cities2 = list(country_data['asciiname'].dropna())
+        cities3 = list(country_data['alternatenames'].dropna())
+        cities = []
+        for alternames in cities3:
+            altername_lst = alternames.split(",") 
+            cities = cities + altername_lst
+        cities = list(set(cities + cities1 + cities2))
+        cities_lst = [x for x in cities if x is not None]
+        country_cities[country_code] = cities_lst
+    
+    return country_cities
+    
+
+
+
+def countryInfo():
+    '''
+    this is to output a country list, country_code_dict[country] = country_code, country_langs_dict[country_code] = language
+    '''
+    colnames = ["ISO", "ISO3", "ISONum", "fips", "Country", "Capital", "Area","Population", "Countinent", "tld", "currencycode","CurrencyName","Phone","PostalCodeFormat","PostalCodeRegex","Languages","geonameid","neighbours","EquivalentFipsCode"]
+    contryinfo = pd.read_table("/Users/jiajunluo/OneDrive/Documents/Pitt_PhD/ResearchProjects/datasets/countryinfo_data.txt",  index_col=False, names = colnames)
+    #len(list(set(list(contryinfo['Country']))))
+    country_lst = []
+    country_code_dict = {}
+    country_langs_dict = {}
+    for ind, row in contryinfo.iterrows():
+        country_code = row["ISO"]
+        country = row['Country'].lower()
+        language = row['Languages']
+        #neighbours = row['neighbours']
+        country_lst.append(country)
+        country_code_dict[country] = country_code
+        country_langs_dict[country_code] = language
+    return (country_lst, country_code_dict, country_langs_dict)
 
 
 def checkLocKeys(key_lst_lower):
@@ -32,6 +87,15 @@ def checkLocKeys(key_lst_lower):
 
 
 def locInfobox(data):
+    '''
+    use the wptools to parse the infobox data
+    input:
+        data including fields: pagetitle, postid
+    output: 
+        loc_info_data
+    this function will be used by:
+        locProcess(loc_info_data) for futher process
+    '''
     loc_info_data = {}
     
     i=0
@@ -51,10 +115,10 @@ def locInfobox(data):
         page.get_parse()
         infocontent = page.data.get('infobox')
         
-        loc_info_data[postid]['country_code'] = ""
-        loc_info_data[postid]['country'] = ""
-        loc_info_data[postid]['residence'] = ""
-        loc_info_data[postid]["info_location"] = [None,None,None]
+        loc_info_data[postid]['country_code'] = "" #field: country code
+        loc_info_data[postid]['country'] = "" #field: country
+        loc_info_data[postid]['residence'] = "" #field: resident
+        loc_info_data[postid]["info_location"] = [None,None,None] #looking for fields: location, locale, nationality
         loc_info_data[postid]["info_relates"] = []
         if infocontent is not None:
             key_lst = list(infocontent.keys())
@@ -95,58 +159,15 @@ def locInfobox(data):
     return loc_info_data
 
 
-def city_country_gnrtor():
-    """
-    this is to return a country_code:[cities] dictionary for check
-    """
-    column_names = ["geonameid", "name", "asciiname", "alternatenames", "lati", "longti", "featureclasee", "featurecode","country_code","cc2","admin1code","admin2code","admin3code","admin4code","population","elevation","dem","timezone","modifieddate"]
-    citi500_country = pd.read_table("/Users/jiajunluo/OneDrive/Documents/Pitt_PhD/ResearchProjects/datasets/cities500.txt", header=None, names = column_names)
-    
-    country_grouped = citi500_country.groupby("country_code")
-    country_cities = {}
-    n=0
-    for cgroup in country_grouped:
-        n+=1
-        #if n==1: break
-        country_code = cgroup[0]
-        
-        #select on before and after
-        country_data = cgroup[1]#.groupby(['after_first_event_edit']) 
-        cities1 = list(country_data['name'].dropna())
-        cities2 = list(country_data['asciiname'].dropna())
-        cities3 = list(country_data['alternatenames'].dropna())
-        cities = []
-        for alternames in cities3:
-            altername_lst = alternames.split(",") 
-            cities = cities + altername_lst
-        cities = list(set(cities + cities1 + cities2))
-        cities_lst = [x for x in cities if x is not None]
-        country_cities[country_code] = cities_lst
-    
-    return country_cities
-    
-
-
-
-def countryInfo():
-    colnames = ["ISO", "ISO3", "ISONum", "fips", "Country", "Capital", "Area","Population", "Countinent", "tld", "currencycode","CurrencyName","Phone","PostalCodeFormat","PostalCodeRegex","Languages","geonameid","neighbours","EquivalentFipsCode"]
-    contryinfo = pd.read_table("/Users/jiajunluo/OneDrive/Documents/Pitt_PhD/ResearchProjects/datasets/countryinfo_data.txt",  index_col=False, names = colnames)
-    #len(list(set(list(contryinfo['Country']))))
-    country_lst = []
-    country_code_dict = {}
-    country_langs_dict = {}
-    for ind, row in contryinfo.iterrows():
-        country_code = row["ISO"]
-        country = row['Country'].lower()
-        language = row['Languages']
-        #neighbours = row['neighbours']
-        country_lst.append(country)
-        country_code_dict[country] = country_code
-        country_langs_dict[country_code] = language
-    return (country_lst, country_code_dict, country_langs_dict)
-
     
 def locProcess(loc_info_data):
+    '''
+    data cleaning process for loc_info_data
+    output:
+        loc_clean_terms
+    will be used for: 
+        countrycode_checking(loc_clean_terms) together with two checking functions
+    '''
     URL_PATTERN=re.compile(r'(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?\xab\xbb\u201c\u201d\u2018\u2019]))')
     loc_clean_terms = {}
     for postid, content in loc_info_data.items():
@@ -199,7 +220,10 @@ def locProcess(loc_info_data):
 
 
 def checkCountryfromCity(term, country_citi_dict):
-    #this is to check: given terms, whether it includes city term, and retrieve the country code 
+    '''
+    checking function
+    this is to check: given terms, whether it includes city term, and retrieve the country code 
+    '''
     yes_country = []
     #possible_country = []
     for country_code, city_lst in country_citi_dict.items():
@@ -212,7 +236,10 @@ def checkCountryfromCity(term, country_citi_dict):
     
 
 def checkCountryfromCountry(term, country_lst, country_code_dict):
-    #this is to check: given terms, whether it includes country term, and retrieve the country code 
+    '''
+    checking function
+    this is to check: given terms, whether it includes country term, and retrieve the country code 
+    '''
     yes_country = []
     possible_country = []
     for country in list(country_code_dict.keys()):
@@ -224,6 +251,13 @@ def checkCountryfromCountry(term, country_lst, country_code_dict):
 
 
 def countrycode_checking(loc_clean_terms):
+    '''
+    used together with 2 checking functions
+    output all possible countries, matched with loc_clean_terms, using country/city dictionary
+    output:
+        allcountrycodes
+    used by countryCode(allcountrycodes) to prioritize the possibility
+    '''
     allcountrycodes= {}
     i=1
     for postid, item in loc_clean_terms.items():
@@ -278,6 +312,9 @@ def countrycode_checking(loc_clean_terms):
 
 
 def countryCode(allcountrycodes):
+    '''
+    this output the 8 countrys in the order to possibility
+    '''
     yes_country = {}
     for postid, content in allcountrycodes.items():
         yes_country[postid] = [content['en_title'], None, None, None,None, None, None,None, None]#, None, None] #sure, notsosure, unsure, nosure
@@ -324,7 +361,7 @@ def countryCode(allcountrycodes):
     return yes_country
 
 if __name__ == "__main__":
-    data = pd.read_csv("/Users/jiajunluo/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/post_articles_set_r1.csv")
+    data = pd.read_csv("/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/post_articles_set_r1.csv")
     
     #raw location related info from infobox
     loc_info_data = locInfobox(data)
@@ -343,16 +380,25 @@ if __name__ == "__main__":
     
     allcountrycodes = countrycode_checking(loc_clean_terms)
     #pickle.dump( allcountrycodes, open( "/Users/jiajunluo/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/allcountrycodes.p", "wb" ) )
-    allcountrycodes = pickle.load( open( "/Users/jiajunluo/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/allcountrycodes.p", "rb" ) )
+    
+    allcountrycodes = pickle.load( open( "/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/allcountrycodes.p", "rb" ) )
     
     yes_country = countryCode(allcountrycodes)
     
-    postid_pageinfo = {}
+    
+    #Location write out
+    f = open("/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/location_needcoding.csv", "w")
+    writer=csv.writer(f)
+    #write first row, column names
+    writer.writerow(['postid','pageid','link_to_article','en_title','loc1','loc2','loc3','loc4','loc5','loc6','loc7','loc8'])
+    
+    #postid_pageinfo = {}
     for ind, row in data.iterrows():
         link = "https://en.wikipedia.org/?curid="+str(row["en_pageid"])
-        postid_pageinfo[row['postid']] = [row["en_pageid"], link] + yes_country[row['postid']]
-
+        rowlist = [row['postid']] + [row["en_pageid"], link] + [row["en_title"]] + yes_country[row['postid']][1::]
+        writer.writerow(rowlist)
         
+    f.close()    
                 
             
         
