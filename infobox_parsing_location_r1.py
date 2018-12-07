@@ -11,6 +11,7 @@ grap location from info box:
 
 @author: angli
 """
+from collections import Counter
 import pandas as pd
 #import urllib
 #import infoboxGrabbing as wpinfo
@@ -99,7 +100,7 @@ def city_country_gnrtor():
     this is to return a country_code:[cities] dictionary for check
     """
     column_names = ["geonameid", "name", "asciiname", "alternatenames", "lati", "longti", "featureclasee", "featurecode","country_code","cc2","admin1code","admin2code","admin3code","admin4code","population","elevation","dem","timezone","modifieddate"]
-    citi500_country = pd.read_table("/Users/angli/ANG/OneDrive/Documents/Pitt_PhD/ResearchProjects/datasets/cities500.txt", header=None, names = column_names)
+    citi500_country = pd.read_table("/Users/jiajunluo/OneDrive/Documents/Pitt_PhD/ResearchProjects/datasets/cities500.txt", header=None, names = column_names)
     
     country_grouped = citi500_country.groupby("country_code")
     country_cities = {}
@@ -129,7 +130,7 @@ def city_country_gnrtor():
 
 def countryInfo():
     colnames = ["ISO", "ISO3", "ISONum", "fips", "Country", "Capital", "Area","Population", "Countinent", "tld", "currencycode","CurrencyName","Phone","PostalCodeFormat","PostalCodeRegex","Languages","geonameid","neighbours","EquivalentFipsCode"]
-    contryinfo = pd.read_table("/Users/angli/ANG/OneDrive/Documents/Pitt_PhD/ResearchProjects/datasets/countryinfo_data.txt",  index_col=False, names = colnames)
+    contryinfo = pd.read_table("/Users/jiajunluo/OneDrive/Documents/Pitt_PhD/ResearchProjects/datasets/countryinfo_data.txt",  index_col=False, names = colnames)
     #len(list(set(list(contryinfo['Country']))))
     country_lst = []
     country_code_dict = {}
@@ -200,14 +201,14 @@ def locProcess(loc_info_data):
 def checkCountryfromCity(term, country_citi_dict):
     #this is to check: given terms, whether it includes city term, and retrieve the country code 
     yes_country = []
-    possible_country = []
+    #possible_country = []
     for country_code, city_lst in country_citi_dict.items():
         for city in city_lst:
             if city.lower() == term.lower(): #or (term.lower() in city.lower()):
                 yes_country.append(country_code)
-            elif (city.lower() in term.lower()) or (term.lower() in city.lower()):
-                possible_country.append(country_code)
-    return  (yes_country, possible_country)
+#            elif (city.lower() in term.lower()) or (term.lower() in city.lower()):
+#                possible_country.append(country_code)
+    return  yes_country#, possible_country)
     
 
 def checkCountryfromCountry(term, country_lst, country_code_dict):
@@ -222,6 +223,105 @@ def checkCountryfromCountry(term, country_lst, country_code_dict):
     return (yes_country, possible_country)
 
 
+def countrycode_checking(loc_clean_terms):
+    allcountrycodes= {}
+    i=1
+    for postid, item in loc_clean_terms.items():
+        i+=1
+        if i%50==0: print(i)
+        allcountrycodes[postid] = {}
+        en_title = re.sub(r'[^a-zA-Z]', ' ', item[0]).strip()
+        allcountrycodes[postid]['en_title'] = en_title
+        allcountrycodes[postid]['title_countries'] = []
+        allcountrycodes[postid]['title_citycountries'] = []
+        title_terms = en_title.split(" ")
+        title_terms = [x.strip() for x in title_terms if x !=""]
+        for term in title_terms:
+            yes_citicheck_l = checkCountryfromCity(term, country_citi_dict)
+            allcountrycodes[postid]['title_countries'] += yes_citicheck_l
+            yes_countrycheck_l, pos_countrycheck_l = checkCountryfromCountry(term, country_lst, country_code_dict)
+            allcountrycodes[postid]['title_citycountries'] +=  yes_countrycheck_l
+        
+        allcountrycodes[postid]['yes1_countries'] = []
+        allcountrycodes[postid]['yes1_citi_countries'] = []
+        allcountrycodes[postid]['yes2_countries'] = []
+        allcountrycodes[postid]['yes2_citi_countries'] = []
+        
+        allcountrycodes[postid]['pos1_countries'] = []
+        #allcountrycodes[postid]['pos1_citi_countries'] = []
+        allcountrycodes[postid]['pos2_countries'] = []
+        #allcountrycodes[postid]['pos2_citi_countries'] = []
+        
+        locationTerm_lst = [x for x in item[1] if x != ""]
+        otherTerms_lst = item[2]
+
+        if len(locationTerm_lst) != 0:
+            for locterm in locationTerm_lst:
+                yes_citicheck_l = checkCountryfromCity(locterm, country_citi_dict)
+                allcountrycodes[postid]['yes1_citi_countries'] += yes_citicheck_l
+                #allcountrycodes[postid]['pos1_citi_countries'] += pos_citicheck_l
+                yes_countrycheck_l, pos_countrycheck_l = checkCountryfromCountry(locterm, country_lst, country_code_dict)
+                allcountrycodes[postid]['yes1_countries'] += yes_countrycheck_l
+                allcountrycodes[postid]['pos1_countries'] += pos_countrycheck_l
+        if len(otherTerms_lst) != 0:
+            for oterm in otherTerms_lst:
+                yes_citicheck_o = checkCountryfromCity(oterm, country_citi_dict)
+                #print (yes_citicheck_o)
+                allcountrycodes[postid]['yes2_citi_countries'] += yes_citicheck_o
+                #allcountrycodes[postid]['pos2_citi_countries'] += pos_citicheck_o
+                yes_countrycheck_o, pos_countrycheck_o = checkCountryfromCountry(oterm, country_lst, country_code_dict)
+                #print (yes_countrycheck_o, pos_countrycheck_o)
+                allcountrycodes[postid]['yes2_countries'] += yes_countrycheck_o
+                allcountrycodes[postid]['pos2_countries'] += pos_countrycheck_o
+                
+    return allcountrycodes
+
+
+def countryCode(allcountrycodes):
+    yes_country = {}
+    for postid, content in allcountrycodes.items():
+        yes_country[postid] = [content['en_title'], None, None, None,None, None, None,None, None]#, None, None] #sure, notsosure, unsure, nosure
+        if len(content['yes1_countries']) != 0:
+            c = Counter(content['yes1_countries'])
+            counts = c.most_common()
+            mostcommon_country,  mostcommon_country_counts = counts[0]
+            yes_country[postid][1] = mostcommon_country
+        if len(content['yes2_countries']) != 0:
+            c = Counter(content['yes2_countries'])
+            counts = c.most_common()
+            mostcommon_country,  mostcommon_country_counts = counts[0]
+            yes_country[postid][2] = mostcommon_country
+        if len(content['yes1_citi_countries']) != 0:
+            c = Counter(content['yes1_citi_countries'])
+            counts = c.most_common()
+            mostcommon_country,  mostcommon_country_counts = counts[0]
+            yes_country[postid][3] = mostcommon_country
+        if len(content['yes2_citi_countries']) != 0:
+            c = Counter(content['yes2_citi_countries'])
+            counts = c.most_common()
+            mostcommon_country,  mostcommon_country_counts = counts[0]
+            yes_country[postid][4] = mostcommon_country
+        if len(content['pos1_countries']) != 0:
+            c = Counter(content['pos1_countries'])
+            counts = c.most_common()
+            mostcommon_country,  mostcommon_country_counts = counts[0]
+            yes_country[postid][5] = mostcommon_country
+        if len(content['pos2_countries']) != 0:
+            c = Counter(content['pos2_countries'])
+            counts = c.most_common()
+            mostcommon_country,  mostcommon_country_counts = counts[0]
+            yes_country[postid][6] = mostcommon_country
+        if len(content['title_countries']) != 0:
+            c = Counter(content['title_countries'])
+            counts = c.most_common()
+            mostcommon_country,  mostcommon_country_counts = counts[0]
+            yes_country[postid][7] = mostcommon_country
+        if len(content['title_citycountries']) != 0:
+            c = Counter(content['title_citycountries'])
+            counts = c.most_common()
+            mostcommon_country,  mostcommon_country_counts = counts[0]
+            yes_country[postid][8] = mostcommon_country
+    return yes_country
 
 if __name__ == "__main__":
     data = pd.read_csv("/Users/jiajunluo/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/post_articles_set_r1.csv")
@@ -229,7 +329,7 @@ if __name__ == "__main__":
     #raw location related info from infobox
     loc_info_data = locInfobox(data)
     #pickle.dump( loc_info_data, open( "/Users/jiajunluo/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/post_loc_info.p", "wb" ) )
-    #loc_info_data = pickle.load( open( "/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/post_loc_info.p", "rb" ) )
+    loc_info_data = pickle.load( open( "/Users/jiajunluo/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/post_loc_info.p", "rb" ) )
     
     #cleaned loc info from processed loc_info_data
     loc_clean_terms = locProcess(loc_info_data)
@@ -241,51 +341,18 @@ if __name__ == "__main__":
     #country_citi_dict = pickle.load( open( "/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/country_citi_dict.p", "rb" ) )
     country_lst, country_code_dict, country_langs_dict = countryInfo() #country names as key
     
-    allcountrycodes= {}
-    i=1
-    for postid, item in loc_clean_terms.items():
-        i+=1
-        if i%50==0: print(i)
-        allcountrycodes[postid] = {}
-        en_title = item[0]
-        allcountrycodes[postid]['en_title'] = en_title
-        allcountrycodes[postid]['title_countries'] = []
-        title_terms = en_title.split(" ")
-        for term in title_terms:
-            yes_citicheck_l, pos_citicheck_l = checkCountryfromCity(term, country_citi_dict)
-            allcountrycodes[postid]['title_countries'] += yes_citicheck_l
-            yes_countrycheck_l, pos_countrycheck_l = checkCountryfromCountry(term, country_lst, country_code_dict)
-            allcountrycodes[postid]['title_countries'] +=  yes_countrycheck_l
-        
-        allcountrycodes[postid]['yes1_countries'] = []
-        allcountrycodes[postid]['yes1_citi_countries'] = []
-        allcountrycodes[postid]['yes2_countries'] = []
-        allcountrycodes[postid]['yes2_citi_countries'] = []
-        
-        allcountrycodes[postid]['pos1_countries'] = []
-        allcountrycodes[postid]['pos1_citi_countries'] = []
-        allcountrycodes[postid]['pos2_countries'] = []
-        allcountrycodes[postid]['pos2_citi_countries'] = []
-        
-        locationTerm_lst = [x for x in item[1] if x != ""]
-        otherTerms_lst = item[2]
+    allcountrycodes = countrycode_checking(loc_clean_terms)
+    #pickle.dump( allcountrycodes, open( "/Users/jiajunluo/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/allcountrycodes.p", "wb" ) )
+    allcountrycodes = pickle.load( open( "/Users/jiajunluo/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/allcountrycodes.p", "rb" ) )
+    
+    yes_country = countryCode(allcountrycodes)
+    
+    postid_pageinfo = {}
+    for ind, row in data.iterrows():
+        link = "https://en.wikipedia.org/?curid="+str(row["en_pageid"])
+        postid_pageinfo[row['postid']] = [row["en_pageid"], link] + yes_country[row['postid']]
 
-        if len(locationTerm_lst) != 0:
-            for locterm in locationTerm_lst:
-                yes_citicheck_l, pos_citicheck_l = checkCountryfromCity(locterm, country_citi_dict)
-                allcountrycodes[postid]['yes1_citi_countries'] += yes_citicheck_l
-                allcountrycodes[postid]['pos1_citi_countries'] += pos_citicheck_l
-                yes_countrycheck_l, pos_countrycheck_l = checkCountryfromCountry(locterm, country_lst, country_code_dict)
-                allcountrycodes[postid]['yes1_countries'] += yes_countrycheck_l
-                allcountrycodes[postid]['pos1_countries'] += pos_countrycheck_l
-        if len(otherTerms_lst) != 0:
-            for oterm in otherTerms_lst:
-                yes_citicheck_o, pos_citicheck_o = checkCountryfromCity(oterm, country_citi_dict)
-                allcountrycodes[postid]['yes2_citi_countries'] += yes_citicheck_o
-                allcountrycodes[postid]['pos2_citi_countries'] += pos_citicheck_o
-                yes_countrycheck_o, pos_countrycheck_o = checkCountryfromCountry(oterm, country_lst, country_code_dict)
-                allcountrycodes[postid]['yes2_countries'] += yes_countrycheck_o
-                allcountrycodes[postid]['pos2_countries'] += pos_countrycheck_o
+        
                 
             
         
