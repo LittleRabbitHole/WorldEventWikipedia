@@ -8,6 +8,7 @@ Created on Sat Dec  1 19:32:21 2018
 output: effort_dataset_r1.csv
 
 postid,lang,postyear,postdatetime,pageid,
+--article creation, first event edit--
 article_firstedit_ever_revid, article_firstedit_ever_date, 
 article_firstedit_ever_timestamp,article_firstedit_ever_size,
 
@@ -15,8 +16,11 @@ article_firstedit_ever_timestamp,article_firstedit_ever_size,
 totaledits_byall,totaledits_byregistered,unique_all_editors,
 unique_registered_editors,total_size_added,sizeadded_byregistered,
 
-#4 time point revision id for quality measure collection
-firstedit_revid,endfirstday_revid,endfirstweek_revid,firstmonth_revid      
+#4 time point (after events) revision id for quality measure collection
+firstedit_revid, firstedit_timestamp,
+endfirstday_revid,
+endfirstweek_revid,
+firstmonth_revid      
       
 """
 import pandas as pd
@@ -31,12 +35,12 @@ import requests
 if __name__ == "__main__":    
     #read revision data
     #[postid, "en", postyear, postdate, postdatetime, en_pageid, {all revis}]
-    articles_revis = pickle.load( open( "/Users/jiajunluo/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/article_revisions_list_6739.p", "rb" ) )
+    articles_revis = pickle.load( open( "/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/article_revisions_list_6739.p", "rb" ) )
         
     #write out
-    f = open("/Users/jiajunluo/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/effort_dataset_r1.csv", "w")
+    f = open("/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/effort_dataset_r1.csv", "w")
     #write first row
-    f.write('postid,lang,postyear,postdatetime,pageid,article_firstedit_ever_revid,article_firstedit_ever_date,article_firstedit_ever_timestamp,article_firstedit_ever_size,totaledits_byall,totaledits_byregistered,unique_all_editors,unique_registered_editors,total_size_added,sizeadded_byregistered,firstedit_revid,endfirstday_revid,endfirstweek_revid,firstmonth_revid\n')
+    f.write('postid,lang,postyear,postdatetime,pageid,article_firstedit_ever_revid,article_firstedit_ever_date,article_firstedit_ever_timestamp,article_firstedit_ever_size,totaledits_byall,totaledits_byregistered,unique_all_editors,unique_registered_editors,total_size_added,sizeadded_byregistered,firstedit_revid,firstedit_timestamp,endfirstday_revid,endfirstweek_revid,firstmonth_revid\n')
     
     i=0
     for article_post in articles_revis:  
@@ -76,6 +80,7 @@ if __name__ == "__main__":
             tst = tst.set_index('index')
             
             firstedit_revid = str(tst['revid'].iloc[0])
+            firstedit_timestamp = str(tst['timestamp'].iloc[0])
             firstmonth_revid = str(tst['revid'].iloc[-1])
             endfirstday_revid = str(tst.resample('1D').max().iloc[0]["revid"])
             endfirstweek_revid = str(tst.resample('7D').max().iloc[0]["revid"]) 
@@ -86,12 +91,12 @@ if __name__ == "__main__":
             unique_registered_editors = str(len(tst[['userid']].drop_duplicates()) -1)
             total_size_added = str(tst['size'].iloc[-1] - tst['size'].iloc[0])
             sizeadded_byregistered = str(tst['sizediff'].loc[tst['userid'] > 0].sum())
-            article_row = row_base + article_firstedit_ever_info + [totaledits_byall, totaledits_byregistered, unique_all_editors,unique_registered_editors, total_size_added, sizeadded_byregistered]  + [firstedit_revid, endfirstday_revid, endfirstweek_revid, firstmonth_revid]
+            article_row = row_base + article_firstedit_ever_info + [totaledits_byall, totaledits_byregistered, unique_all_editors,unique_registered_editors, total_size_added, sizeadded_byregistered]  + [firstedit_revid, firstedit_timestamp, endfirstday_revid, endfirstweek_revid, firstmonth_revid]
                 
             line_string = ",".join(article_row)+"\n"
             f.write(line_string)
         else:
-            article_row = row_base + article_firstedit_ever_info + 10*[str(0)]
+            article_row = row_base + article_firstedit_ever_info + 11*[str(0)]
             line_string = ",".join(article_row)+"\n"
             f.write(line_string)
     f.close()        

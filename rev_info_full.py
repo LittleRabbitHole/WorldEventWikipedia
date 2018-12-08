@@ -12,12 +12,13 @@ import json
 # get the page data
 def getPageInfo(revid,article_id,language):
     content=""
-    url='https://'+language+'.wikipedia.org/w/api.php?action=query&prop=revisions&rvprop=size|content&format=json&inprop=url&revids='+str(revid)
+    url='https://'+language+'.wikipedia.org/w/api.php?action=query&prop=revisions&rvprop=ids|timestamp|size|content&format=json&inprop=url&revids='+str(revid)
     web_data = requests.get(url)
     datas = json.loads(web_data.text)
     content=datas["query"]["pages"][str(article_id)]["revisions"][0].get("*")
     size = datas["query"]["pages"][str(article_id)]["revisions"][0].get("size")
-    return (content, size)
+    timestamp = datas["query"]["pages"][str(article_id)]["revisions"][0].get("timestamp")
+    return (content, size,timestamp)
 
 #get reference number
 def refNum(content):
@@ -56,9 +57,10 @@ def sectionNoList(content):
 
 
 def qualityMeasures(revid, article_id, lang):
-    content, size = getPageInfo(revid, article_id, lang)
+    content, size, timestamp = getPageInfo(revid, article_id, lang)
     measures = {}
     if content:
+        measures['timestamp'] = timestamp
         measures['size'] = size
         measures['references'] = refNum(content)
         measures['wiki_links'] = wikiNum(content)
@@ -80,6 +82,7 @@ def qualityMeasures(revid, article_id, lang):
             measures['section_breadth']=0
             measures['section_num']=0
     else:
+        measures['timestamp'] = -1
         measures['size'] = -1
         measures['references'] = -1
         measures['wiki_links'] = -1

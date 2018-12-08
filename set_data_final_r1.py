@@ -56,6 +56,26 @@ def topicMatching():
     return  post_topic_dict          
 
 
+def topicMatching2():
+    post_topic = pd.read_csv("/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/post_articles_topic_r1.csv")
+    post_grouped = post_topic.groupby(['postid'])
+    
+    post_topic_dict = {}
+    
+    n=0
+    for pidgroup in post_grouped:
+        n+=1
+        if n==12: break
+        post_id = pidgroup[0]
+        
+        #select on before and after
+        piddata = pidgroup[1]#.groupby(['after_first_event_edit']) 
+        category = list(set(list(piddata['category'])))[0]
+        topic = list(set(list(piddata['topic'].dropna())))[0]
+        post_topic_dict[post_id] = [topic,category]
+    return  post_topic_dict          
+
+
 def addTopics(data, post_topic_dict):
     data["topic"] = ""
     data["category"] = ""
@@ -81,6 +101,7 @@ if __name__ == "__main__":
     post_articles_topic = addTopics(post_articles, post_topic_dict)
     post_articles_topic.to_csv('/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/post_articles_topic_r1.csv', index=False)
     
+    post_topic_dict = topicMatching2()
     efforts = pd.read_csv("/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/effort_dataset_r1.csv")
     efforts_topic = addTopics(efforts, post_topic_dict)
     efforts_topic.to_csv('/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/efforts_topic_r1.csv', index=False)
