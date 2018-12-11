@@ -57,7 +57,7 @@ def topicMatching():
 
 
 def topicMatching2():
-    post_topic = pd.read_csv("/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/post_articles_topic_r1.csv")
+    post_topic = pd.read_csv("/Users/jiajunluo/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/post_articles_topic_r1.csv")
     post_grouped = post_topic.groupby(['postid'])
     
     post_topic_dict = {}
@@ -65,7 +65,7 @@ def topicMatching2():
     n=0
     for pidgroup in post_grouped:
         n+=1
-        if n==12: break
+        #if n==12: break
         post_id = pidgroup[0]
         
         #select on before and after
@@ -101,10 +101,11 @@ if __name__ == "__main__":
     post_articles_topic = addTopics(post_articles, post_topic_dict)
     post_articles_topic.to_csv('/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/post_articles_topic_r1.csv', index=False)
     
+    #use updated topic
     post_topic_dict = topicMatching2()
-    efforts = pd.read_csv("/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/effort_dataset_r1.csv")
+    efforts = pd.read_csv("/Users/jiajunluo/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/effort_dataset_r1_v2.csv")
     efforts_topic = addTopics(efforts, post_topic_dict)
-    efforts_topic.to_csv('/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/efforts_topic_r1.csv', index=False)
+    efforts_topic.to_csv('/Users/jiajunluo/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/efforts_topic_r1_v2.csv', index=False)
     
     quality = pd.read_csv("/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/qualitymeasures_dataset_r1.csv")
     quality_topic = addTopics(quality, post_topic_dict)

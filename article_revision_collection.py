@@ -104,7 +104,7 @@ def articleRevisions(data):
             
             es_url = "https://es.wikipedia.org/w/api.php?action=query"\
             "&format=json&prop=revisions&rvdir=newer&rvstart={}&rvend={}"\
-            "&rvprop=ids|timestamp|userid|size&pageids={}&rvlimit=500".format(rvstart, rvend, es_pageid)
+            "&rvprop=ids|timestamp|user|userid|size&pageids={}&rvlimit=500".format(rvstart, rvend, es_pageid)
             try: 
                 es_page_revis = utilities.GetPageRevision(es_url)  
             except:
@@ -131,8 +131,8 @@ if __name__ == "__main__":
     len(article_revision_lst)#6730
     len(list(article_revisions.keys()))#2064
     
-    pickle.dump( article_revision_lst, open( "/Users/jiajunluo/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/article_revisions_list_6739.p", "wb" ) )
-    pickle.dump( article_revisions, open( "/Users/jiajunluo/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/article_revisions_dict_2064.p", "wb" ) )
+    pickle.dump( article_revision_lst, open( "/Users/jiajunluo/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/article_revisions_list_6739_v2.p", "wb" ) )
+    pickle.dump( article_revisions, open( "/Users/jiajunluo/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/article_revisions_dict_2064_v2.p", "wb" ) )
 
 
 #"2011-04-09T13:27:29Z"

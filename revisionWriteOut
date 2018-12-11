@@ -1,0 +1,78 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Dec 10 20:36:39 2018
+
+@author: ang
+
+This is to process the raw data and write out
+
+"""
+
+import pandas as pd
+import pickle
+#import rev_info_full as rev
+from datetime import datetime, timedelta
+import utilities
+import requests
+import json
+import csv
+
+
+if __name__ == "__main__":    
+    #read revision data
+    #[postid, "en", postyear, postdate, postdatetime, en_pageid, {all revis}]
+    articles_revis = pickle.load( open( "/Users/jiajunluo/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/article_revisions_list_6739_v2.p", "rb" ) )
+        
+    #write out
+    f = open("/Users/jiajunluo/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/revision_raw_data_r1.csv", "w")
+    writer = csv.writer(f)
+    #write first row
+    writer.writerow(['postid','lang','postyear','postdatetime','article_id(pageid)','rev_id','rev_parentid','rev_timestamp','rev_username','rev_userid','rev_size','rev_size_diff_toparent'])
+    
+    i=0
+    for article_post in articles_revis:  
+        i+=1
+        if i%50==0: print (i)
+        #post data
+        postid, lang, postyear, postdatetime, pageid = str(article_post[0]), article_post[1], str(article_post[2]), article_post[4], str(article_post[5])
+        posttime = datetime.strptime(postdatetime,'%Y-%m-%d')
+        row_base = [str(postid), lang, postyear, postdatetime, str(pageid)]
+
+        #revision data
+        all_revis = article_post[6]
+        if len(all_revis) !=0:
+            tst = pd.DataFrame.from_dict(all_revis).sort_values(by=['revid'])
+            tst["sizediff"] = tst['size'] - tst['size'].shift(1)
+            tst['postdate'] = posttime
+            #tst['timestamp'] = pd.to_datetime(tst['timestamp'], format= '%Y-%m-%dT%H:%M:%SZ')
+            
+            firstrevid_parentid = tst['parentid'].iloc[0]
+            if firstrevid_parentid != 0:
+                url='https://'+lang+'.wikipedia.org/w/api.php?action=query&prop=revisions&rvprop=ids|timestamp|size&format=json&inprop=url&revids='+str(firstrevid_parentid)
+                web_data = requests.get(url)
+                datas = json.loads(web_data.text)
+                if str(datas["query"]["pages"][str(pageid)]["revisions"][0].get("revid")) == str(firstrevid_parentid):
+                    parent_size = str(datas["query"]["pages"][str(pageid)]["revisions"][0].get("size"))
+                else:
+                    parent_size = "0"
+            else:
+                parent_size = "0"
+            
+            parentsizediff= int(parent_size) - tst['size'].iloc[0]
+            tst.at[0, "sizediff"] = parentsizediff
+            
+            for ind, row in tst.iterrows():
+                revision_lst = [str(row['revid']), str(row['parentid']), str(row['timestamp']), str(row['user']), str(row['userid']), str(row['size']), str(row["sizediff"])]
+                row_lst = row_base + revision_lst
+                writer.writerow(row_lst)
+            
+    f.close()
+            
+            
+            
+            
+            
+            
+            
+            
