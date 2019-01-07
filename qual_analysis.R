@@ -1,6 +1,6 @@
 
 ######quality##########
-qual_raw = read.csv("/Users/angli/ANG/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEvents&Wikipedia/data/Ang/rev_candidate_full_section.csv")
+qual_raw = read.csv("/Users/jiajunluo/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/finaldata/Ang/quality_pca.csv")
 qual = qual_raw[c("external_links", "references", "size", "wiki_links","section_breadth", "section_depth", "section_num")]
 pca_fit = prcomp(qual, center = T, scale = T)
 #pca_fit$rotation
@@ -29,7 +29,7 @@ summary(o_qual)
 hist(o_qual)
 qual_raw$qual_score = o_qual
 
-write.csv(qual_raw, file = "/Users/ang/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEvents&Wikipedia/data/Ang/quality_data_score.csv", row.names=FALSE)
+write.csv(qual_raw, file = "/Users/jiajunluo/GoogleDrive/GoogleDrive_Pitt_PhD/UPitt_PhD_O/Research/WorldEventsWikipedia/data/Ang/revise/finaldata/Ang/quality_data_score.csv", row.names=FALSE)
 
 
 library(ggplot2)
