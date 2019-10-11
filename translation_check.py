@@ -21,10 +21,11 @@ def getPageInfo(talkid,lang):
     try:
         allposibilities = datas['query']['pages'][talkid]['templates']
         templates = [x['title'] for x in allposibilities if x['ns'] == 10]
+        translat_lst = ['traducido','translat']
         translatetemps = []
         for x in templates:
-            if 'translat' in x.lower():
-                translatetemps.append(x)
+            res = [ele for ele in translat_lst if (ele in x.lower())]
+            translatetemps += res
         if len(translatetemps)>0:
             return (1)
         else:
